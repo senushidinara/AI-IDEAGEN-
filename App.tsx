@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Storyboard } from './components/Storyboard';
 import { LoadingIndicator } from './components/LoadingIndicator';
 import { VideoPlayer } from './components/VideoPlayer';
-import { generateVideo, generateSpeech } from './services/geminiService';
+import { generateClip } from './services/apiService';
 import { initialClips } from './initialClips';
 import type { Clip } from './types';
 import { ApiKeySelector } from './components/ApiKeySelector';
@@ -19,9 +19,8 @@ const App: React.FC = () => {
   const [hasApiKey, setHasApiKey] = useState<boolean>(false);
   
   useEffect(() => {
-    // Check if the API key is provided via environment variables.
-    // In this specific development environment, process.env.API_KEY is made available
-    // on the client-side if it's defined in a `.env` file.
+    // This check now primarily serves as a visual guide for the user to set up their .env file.
+    // The actual API key usage is handled by the backend server.
     setHasApiKey(!!process.env.API_KEY);
   }, []);
   
@@ -36,19 +35,12 @@ const App: React.FC = () => {
             
             setClips(prev => prev.map(c => c.id === currentClip.id ? { ...c, isGenerating: true } : c));
 
-            const promises: [Promise<string>, Promise<Uint8Array | null>] = [
-                generateVideo(currentClip.prompt, currentClip.image, currentClip.videoConfig),
-                currentClip.voiceoverConfig.script.trim() ? generateSpeech(currentClip.voiceoverConfig) : Promise.resolve(null),
-            ];
+            const { generatedVideoUrl, generatedAudioData } = await generateClip(currentClip);
 
-            const [generatedVideoUrl, generatedAudioData] = await Promise.all(promises);
-
-            setClips(prev => prev.map(c => c.id === currentClip.id ? { ...c, generatedVideoUrl, generatedAudioData: generatedAudioData ?? undefined, isGenerating: false } : c));
+            setClips(prev => prev.map(c => c.id === currentClip.id ? { ...c, generatedVideoUrl, generatedAudioData, isGenerating: false } : c));
         } catch (e: any) {
             console.error(e);
-            setError(`Error generating clip ${i + 1}: ${e.message}`);
-            // If there's an API key error, the message from geminiService will guide the user.
-            // No need to set hasApiKey to false, as they need to fix their .env and refresh.
+            setError(`Error generating clip ${i + 1}: ${e.message}. Make sure the backend server is running and the API key is correct.`);
             setStatus('editing');
             setClips(prev => prev.map(c => ({...c, isGenerating: false})));
             return;

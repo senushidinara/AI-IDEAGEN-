@@ -1,9 +1,44 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import type { Clip } from '../types';
-import { createWavBlob } from './geminiService';
 
 let ffmpeg: FFmpeg | null = null;
+
+// Utility to create a WAV file blob from raw PCM audio data
+const createWavBlob = (pcmData: Uint8Array): Blob => {
+    const sampleRate = 24000; // Gemini TTS sample rate
+    const numChannels = 1;
+    const bitsPerSample = 16;
+    const dataSize = pcmData.length;
+    const blockAlign = (numChannels * bitsPerSample) / 8;
+    const byteRate = sampleRate * blockAlign;
+
+    const buffer = new ArrayBuffer(44 + dataSize);
+    const view = new DataView(buffer);
+
+    // RIFF header
+    view.setUint32(0, 0x52494646, false); // "RIFF"
+    view.setUint32(4, 36 + dataSize, true);
+    view.setUint32(8, 0x57415645, false); // "WAVE"
+    // fmt subchunk
+    view.setUint32(12, 0x666d7420, false); // "fmt "
+    view.setUint32(16, 16, true); // Subchunk1Size
+    view.setUint16(20, 1, true); // AudioFormat (1 for PCM)
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, byteRate, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitsPerSample, true);
+    // data subchunk
+    view.setUint32(36, 0x64617461, false); // "data"
+    view.setUint32(40, dataSize, true);
+
+    // Write PCM data
+    new Uint8Array(buffer, 44).set(pcmData);
+
+    return new Blob([view], { type: 'audio/wav' });
+};
+
 
 export const mergeClips = async (clips: Clip[], onProgress: (message: string) => void): Promise<string> => {
     if (!ffmpeg) {

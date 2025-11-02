@@ -1,0 +1,99 @@
+import { GoogleGenAI, Modality } from '@google/genai';
+import type { VideoConfig, ImageFile, VoiceoverConfig } from '../../../types';
+
+function decode(base64: string): Uint8Array {
+  return Buffer.from(base64, 'base64');
+}
+
+export const generateVideo = async (
+  prompt: string,
+  image: ImageFile | null,
+  config: VideoConfig
+): Promise<Blob> => {
+  if (!process.env.API_KEY) {
+    throw new Error('API key is not configured on the backend. Please check your .env file.');
+  }
+
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
+  try {
+    const generationPayload: any = {
+        model: 'veo-3.1-fast-generate-preview',
+        prompt,
+        config: {
+            numberOfVideos: 1,
+            resolution: config.resolution,
+            aspectRatio: config.aspectRatio,
+        },
+    };
+
+    if (image) {
+        generationPayload.image = {
+            imageBytes: image.base64,
+            mimeType: image.mimeType,
+        };
+    }
+
+    let operation = await ai.models.generateVideos(generationPayload);
+
+    while (!operation.done) {
+        await new Promise(resolve => setTimeout(resolve, 10000)); // Poll every 10 seconds
+        operation = await ai.operations.getVideosOperation({ operation: operation });
+    }
+    
+    const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+    if (!downloadLink) {
+        throw new Error('Video generation succeeded, but no download link was found.');
+    }
+
+    const videoResponse = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+    if (!videoResponse.ok) {
+        throw new Error(`Failed to download video: ${videoResponse.statusText}`);
+    }
+
+    return videoResponse.blob();
+
+  } catch (error: any) {
+    if (error.message && error.message.includes('API key not valid')) {
+      throw new Error('API Key is invalid. Please check the API_KEY in your backend .env file.');
+    }
+    throw error;
+  }
+};
+
+export const generateSpeech = async (
+    config: VoiceoverConfig
+): Promise<Uint8Array> => {
+    if (!process.env.API_KEY) {
+        throw new Error('API key is not configured on the backend. Please check your .env file.');
+    }
+    
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash-preview-tts",
+            contents: [{ parts: [{ text: config.script }] }],
+            config: {
+                responseModalities: [Modality.AUDIO],
+                speechConfig: {
+                    voiceConfig: {
+                        prebuiltVoiceConfig: { voiceName: config.voice },
+                    },
+                },
+            },
+        });
+
+        const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        if (!base64Audio) {
+            throw new Error('Audio generation failed, no audio data received.');
+        }
+        return decode(base64Audio);
+
+    } catch (error: any) {
+        if (error.message && error.message.includes('API key not valid')) {
+             throw new Error('API Key is invalid. Please check the API_KEY in your backend .env file.');
+        }
+        throw new Error(`Failed to generate speech: ${error.message}`);
+    }
+};
