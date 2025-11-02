@@ -1,0 +1,5 @@
+{
+  "name": "AI Video Generator",
+  "description": "Generate stunning videos from text prompts and images using AI. Create multiple short clips in a storyboard and seamlessly merge them into a longer, final video right in your browser.",
+  "requestFramePermissions": []
+}

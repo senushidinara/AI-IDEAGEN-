@@ -1,0 +1,150 @@
+import React, { useState } from 'react';
+import type { Clip, ImageFile, VideoConfig, VoiceoverConfig } from '../types';
+import { fileToBase64 } from '../services/geminiService';
+
+interface ClipFormProps {
+    clip: Clip;
+    index: number;
+    onUpdate: (updatedClip: Partial<Clip>) => void;
+    onRemove: () => void;
+}
+
+const voices = [
+    { id: 'Kore', name: 'Kore (Female, Calm)' },
+    { id: 'Puck', name: 'Puck (Male, Cheerful)' },
+    { id: 'Charon', name: 'Charon (Male, Deep)' },
+    { id: 'Fenrir', name: 'Fenrir (Female, Energetic)' },
+    { id: 'Zephyr', name: 'Zephyr (Female, Warm)' },
+];
+
+const UploadIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+    </svg>
+);
+
+export const ClipForm: React.FC<ClipFormProps> = ({ clip, index, onUpdate, onRemove }) => {
+    const [imagePreview, setImagePreview] = useState<string | null>(clip.image ? `data:${clip.image.mimeType};base64,${clip.image.base64}` : null);
+    const [isExpanded, setIsExpanded] = useState(true);
+
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const { base64, mimeType } = await fileToBase64(file);
+            const imageFile = { base64, mimeType };
+            onUpdate({ image: imageFile });
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
+    const removeImage = () => {
+        onUpdate({ image: null });
+        setImagePreview(null);
+        const fileInput = document.getElementById(`image-upload-${clip.id}`) as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+    };
+
+    const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        onUpdate({ prompt: e.target.value });
+    };
+    
+    const handleVideoConfigChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        onUpdate({ videoConfig: {...clip.videoConfig, [e.target.name]: e.target.value} as VideoConfig });
+    }
+    
+    const handleVoiceoverChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLSelectElement>) => {
+        onUpdate({ voiceoverConfig: {...clip.voiceoverConfig, [e.target.name]: e.target.value} as VoiceoverConfig });
+    }
+
+    return (
+        <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-4 space-y-4">
+            <div className="flex justify-between items-center cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+                <h3 className="font-bold text-lg text-purple-300">Clip #{index + 1}</h3>
+                <div className="flex items-center gap-2">
+                    <button type="button" onClick={(e) => { e.stopPropagation(); onRemove(); }} className="text-gray-400 hover:text-red-400">
+                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
+                        </svg>
+                    </button>
+                     <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 transition-transform text-gray-400 ${isExpanded ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                </div>
+            </div>
+
+            {isExpanded && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    {/* Left Column: Prompt and Image */}
+                    <div className="space-y-4">
+                        <div>
+                            <label htmlFor={`prompt-${clip.id}`} className="block text-sm font-medium text-gray-300 mb-2">Prompt</label>
+                            <textarea id={`prompt-${clip.id}`} value={clip.prompt} onChange={handlePromptChange} placeholder="e.g., A cat driving a sports car" rows={3} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 focus:ring-2 focus:ring-purple-500" required />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Image (Optional)</label>
+                            {imagePreview ? (
+                                <div className="relative group aspect-video">
+                                    <img src={imagePreview} alt="Preview" className="w-full h-full object-contain rounded-lg border border-gray-600 bg-black"/>
+                                    <button type="button" onClick={removeImage} className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100" aria-label="Remove image">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                                    </button>
+                                </div>
+                            ) : (
+                                <label htmlFor={`image-upload-${clip.id}`} className="flex flex-col items-center justify-center w-full h-full border-2 border-gray-600 border-dashed rounded-lg cursor-pointer bg-gray-900/50 hover:bg-gray-800/50 transition aspect-video">
+                                    <div className="flex flex-col items-center justify-center text-gray-400 text-center p-2">
+                                        <UploadIcon />
+                                        <p className="text-xs">Click to upload</p>
+                                    </div>
+                                    <input id={`image-upload-${clip.id}`} type="file" className="hidden" onChange={handleImageChange} accept="image/png, image/jpeg, image/webp" />
+                                </label>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Right Column: Settings and Voiceover */}
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-2">
+                             <div>
+                                <label htmlFor={`aspectRatio-${clip.id}`} className="block text-sm font-medium text-gray-300 mb-2">Ratio</label>
+                                <select id={`aspectRatio-${clip.id}`} name="aspectRatio" value={clip.videoConfig.aspectRatio} onChange={handleVideoConfigChange} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 focus:ring-2 focus:ring-purple-500">
+                                    <option value="16:9">16:9</option>
+                                    <option value="9:16">9:16</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label htmlFor={`resolution-${clip.id}`} className="block text-sm font-medium text-gray-300 mb-2">Resolution</label>
+                                <select id={`resolution-${clip.id}`} name="resolution" value={clip.videoConfig.resolution} onChange={handleVideoConfigChange} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 focus:ring-2 focus:ring-purple-500">
+                                    <option value="720p">720p</option>
+                                    <option value="1080p">1080p</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label htmlFor={`voiceoverScript-${clip.id}`} className="block text-sm font-medium text-gray-300 mb-2">Voiceover (Optional)</label>
+                            <textarea id={`voiceoverScript-${clip.id}`} name="script" value={clip.voiceoverConfig.script} onChange={handleVoiceoverChange} placeholder="Voiceover script..." rows={3} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 focus:ring-2 focus:ring-purple-500"/>
+                        </div>
+                        <div>
+                             <label htmlFor={`voice-${clip.id}`} className="block text-sm font-medium text-gray-300 mb-2">Voice</label>
+                            <select id={`voice-${clip.id}`} name="voice" value={clip.voiceoverConfig.voice} onChange={handleVoiceoverChange} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 focus:ring-2 focus:ring-purple-500">
+                                {voices.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                    {/* Preview Area */}
+                    {(clip.generatedVideoUrl || clip.isGenerating) && (
+                        <div className="md:col-span-2 mt-4 p-2 bg-black rounded-lg">
+                           {clip.isGenerating && (
+                                <div className="aspect-video flex items-center justify-center">
+                                    <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
+                                </div>
+                           )}
+                           {clip.generatedVideoUrl && !clip.isGenerating && (
+                                <video src={clip.generatedVideoUrl} controls muted loop className="w-full h-auto rounded"></video>
+                           )}
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
