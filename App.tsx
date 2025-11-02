@@ -1,51 +1,49 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { ApiKeySelector } from './components/ApiKeySelector';
+import React, { useState, useEffect } from 'react';
 import { Storyboard } from './components/Storyboard';
 import { LoadingIndicator } from './components/LoadingIndicator';
 import { VideoPlayer } from './components/VideoPlayer';
 import { generateVideo, generateSpeech } from './services/geminiService';
-import type { Clip, VideoConfig, VoiceoverConfig, ImageFile } from './types';
+import { initialClips } from './initialClips';
+import type { Clip } from './types';
+import { ApiKeySelector } from './components/ApiKeySelector';
 
-type AppStatus = 'init' | 'selecting_key' | 'editing' | 'generating' | 'merging' | 'done';
+type AppStatus = 'editing' | 'generating' | 'merging' | 'done';
 
 const App: React.FC = () => {
-  const [status, setStatus] = useState<AppStatus>('init');
-  const [clips, setClips] = useState<Clip[]>([]);
+  const [status, setStatus] = useState<AppStatus>('editing');
+  const [clips, setClips] = useState<Clip[]>(initialClips);
   const [finalVideoUrl, setFinalVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
-
-  const checkApiKey = useCallback(async () => {
-    try {
+  const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
+  
+  useEffect(() => {
+    const checkApiKey = async () => {
       if (window.aistudio) {
-        const hasKey = await window.aistudio.hasSelectedApiKey();
-        setStatus(hasKey ? 'editing' : 'selecting_key');
+        try {
+          const keyExists = await window.aistudio.hasSelectedApiKey();
+          setHasApiKey(keyExists);
+        } catch (e) {
+          console.error("Error checking for API key:", e);
+          setHasApiKey(false);
+        }
       } else {
-          console.warn('aistudio is not available. Assuming API key is set via environment variable.');
-          setStatus('editing');
+        console.warn("aistudio environment not found. API key selection will not work.");
+        // Fallback for local dev allows proceeding if key is in environment
+        setHasApiKey(!!process.env.API_KEY);
       }
-    } catch (e) {
-      console.error("Error checking API key status:", e);
-      setError("Could not verify API key status. Please select a new key if the problem persists.");
-      setStatus('selecting_key');
-    }
+    };
+    checkApiKey();
   }, []);
 
-  useEffect(() => {
-    checkApiKey();
-  }, [checkApiKey]);
-  
-  const handleApiKeySelected = () => {
-    setStatus('editing');
-  };
-  
   const resetApiKey = () => {
-    setStatus('selecting_key');
-    setError('API Key not found or invalid. Please select a valid API key and try again.');
+    setHasApiKey(false);
+    setStatus('editing');
+    setError('API Key not found or invalid. Please select a valid API key.');
+    setClips(prev => prev.map(c => ({...c, isGenerating: false})));
   };
-
-  const handleGenerateAll = async () => {
-    setError(null);
+  
+  const startGenerationProcess = async () => {
     setStatus('generating');
 
     for (let i = 0; i < clips.length; i++) {
@@ -54,7 +52,6 @@ const App: React.FC = () => {
         try {
             const currentClip = clips[i];
             
-            // Set generating status for the specific clip
             setClips(prev => prev.map(c => c.id === currentClip.id ? { ...c, isGenerating: true } : c));
 
             const promises: [Promise<string>, Promise<Uint8Array | null>] = [
@@ -67,13 +64,21 @@ const App: React.FC = () => {
             setClips(prev => prev.map(c => c.id === currentClip.id ? { ...c, generatedVideoUrl, generatedAudioData: generatedAudioData ?? undefined, isGenerating: false } : c));
         } catch (e: any) {
             console.error(e);
-            setError(`Error generating clip ${i + 1}: ${e.message}`);
+            // Don't show the generic "API Key" error if a more specific one was thrown.
+            if (!e.message.includes('API Key not found or invalid')) {
+              setError(`Error generating clip ${i + 1}: ${e.message}`);
+            }
             setStatus('editing');
-            setClips(prev => prev.map(c => ({...c, isGenerating: false}))); // Reset all generating statuses
+            setClips(prev => prev.map(c => ({...c, isGenerating: false})));
             return;
         }
     }
-    setStatus('editing'); // Back to editing to show merge button
+    setStatus('editing');
+  }
+
+  const handleGenerateAll = async () => {
+    setError(null);
+    startGenerationProcess();
   };
 
   const handleMerge = async () => {
@@ -100,43 +105,57 @@ const App: React.FC = () => {
     setStatus('editing');
   };
   
-  const renderContent = () => {
+  const renderAppContent = () => {
      if (status === 'generating' || status === 'merging') {
         return <LoadingIndicator message={loadingMessage} />;
      }
      if (status === 'done' && finalVideoUrl) {
         return <VideoPlayer videoUrl={finalVideoUrl} onReset={handleReset} />;
      }
-     if (status === 'editing') {
-         const allClipsGenerated = clips.length > 0 && clips.every(c => c.generatedVideoUrl);
-         return <Storyboard clips={clips} setClips={setClips} onGenerate={handleGenerateAll} onMerge={handleMerge} canMerge={allClipsGenerated}/>;
-     }
-     if (status === 'selecting_key') {
-        return <ApiKeySelector onApiKeySelected={handleApiKeySelected} />;
-     }
-     return <LoadingIndicator message="Initializing..." />; // Initializing or init state
+     
+     const allClipsGenerated = clips.length > 0 && clips.every(c => c.generatedVideoUrl);
+     return <Storyboard clips={clips} setClips={setClips} onGenerate={handleGenerateAll} onMerge={handleMerge} canMerge={allClipsGenerated}/>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 selection:bg-purple-500 selection:text-white">
-      <div className="w-full max-w-4xl mx-auto">
+    <div className="min-h-screen text-white flex flex-col items-center p-4 selection:bg-purple-500 selection:text-white">
+      <div className="w-full max-w-5xl mx-auto py-8">
         <header className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
-            AI Video Generator
+          <h1 className="text-5xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500 animated-gradient">
+            Ideagen
           </h1>
-          <p className="text-gray-400 mt-2">Create epic videos by generating and merging clips in a storyboard.</p>
+          <p className="text-gray-400 mt-3 text-lg">Your AI-powered video creation studio.</p>
         </header>
 
-        <main className="bg-gray-800/50 backdrop-blur-sm p-4 md:p-6 rounded-2xl shadow-2xl border border-gray-700 min-h-[400px] flex flex-col justify-center">
-            {error && (
-                <div className="bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-lg mb-6 text-center">
-                    <p>{error}</p>
-                </div>
-            )}
-            {renderContent()}
+        <main className="bg-gray-900/40 backdrop-blur-md p-4 md:p-6 rounded-2xl shadow-2xl shadow-black/20 border border-gray-700/80 min-h-[400px] flex flex-col justify-center ring-1 ring-white/10">
+            {(() => {
+              if (hasApiKey === null) {
+                return <LoadingIndicator message="Initializing..." />;
+              }
+              if (hasApiKey === false) {
+                return <ApiKeySelector 
+                  error={error} 
+                  onApiKeySelected={() => {
+                    setHasApiKey(true);
+                    setError(null);
+                  }} 
+                />;
+              }
+              // hasApiKey is true, render the main app
+              return (
+                <>
+                  {error && (
+                    <div className="bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-lg mb-6 text-center">
+                        <p>{error}</p>
+                    </div>
+                  )}
+                  {renderAppContent()}
+                </>
+              );
+            })()}
         </main>
         <footer className="text-center mt-8 text-gray-500 text-sm">
-            <p>&copy; {new Date().getFullYear()} AI Video Generator. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Ideagen. All rights reserved.</p>
         </footer>
       </div>
     </div>

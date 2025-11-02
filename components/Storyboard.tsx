@@ -10,11 +10,12 @@ interface StoryboardProps {
   canMerge: boolean;
 }
 
-const InfoIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+const FilmIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 inline-block mr-3 flex-shrink-0 text-purple-300" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM4 4a1 1 0 00-1 1v1h14V5a1 1 0 00-1-1H4zM3 8v2h2V8H3zm4 0v2h2V8H7zm4 0v2h2V8h-2zm4 0v2h2V8h-2zM3 12v2h2v-2H3zm4 0v2h2v-2H7zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2z" />
     </svg>
 );
+
 
 export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGenerate, onMerge, canMerge }) => {
 
@@ -47,13 +48,13 @@ export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGener
 
   return (
     <div className="space-y-6">
-        <div className="bg-blue-900/30 border border-blue-500 text-blue-200 px-4 py-3 rounded-lg text-sm flex items-start">
-            <InfoIcon/>
+        <div className="bg-purple-900/30 border border-purple-700/50 text-purple-200 px-4 py-3 rounded-lg text-sm flex items-start shadow-inner shadow-purple-900/20">
+            <FilmIcon/>
             <div>
-                <strong className="font-semibold">How it works:</strong> Add one or more clips to the storyboard. Generate them individually, then merge them into a single video.
+                <strong className="font-semibold block">Feature Film Loaded!</strong> The full script for "Stardust Gambit" is pre-loaded below. Generating all clips will take a significant amount of time.
             </div>
         </div>
-      <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+      <div className="space-y-4 max-h-[55vh] overflow-y-auto pr-2 -mr-2">
         {clips.map((clip, index) => (
           <ClipForm
             key={clip.id}
@@ -68,7 +69,7 @@ export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGener
         <button
           type="button"
           onClick={addClip}
-          className="w-full bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+          className="w-full bg-gray-700/50 hover:bg-gray-700 text-gray-300 font-medium py-3 px-6 rounded-lg transition-colors border border-gray-600/50 flex items-center justify-center gap-2"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
@@ -79,14 +80,14 @@ export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGener
           <button
             onClick={onGenerate}
             disabled={!canGenerate}
-            className="w-full sm:w-auto flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 focus:outline-none focus:ring-4 focus:ring-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
           >
             Generate All Clips
           </button>
            <button
             onClick={onMerge}
             disabled={!canMerge}
-            className="w-full sm:w-auto flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto flex-1 bg-gradient-to-r from-green-600 to-cyan-600 hover:from-green-700 hover:to-cyan-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 focus:outline-none focus:ring-4 focus:ring-green-500/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
           >
             Merge & Finalize Video
           </button>

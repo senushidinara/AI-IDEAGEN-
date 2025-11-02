@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin" />
     <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp" />
-    <title>AI Video Generator</title>
+    <title>Ideagen</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,45 @@
     <style>
       body {
         font-family: 'Inter', sans-serif;
+        background-color: #030712; /* Fallback */
+        background: linear-gradient(300deg, #0f021a, #0c0214, #030712);
+        background-size: 200% 200%;
+        animation: gradient-animation 15s ease infinite;
       }
+
+      @keyframes gradient-animation {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      .animated-gradient {
+        background-size: 200% auto;
+        animation: text-gradient-animation 4s linear infinite;
+      }
+
+      @keyframes text-gradient-animation {
+        to { background-position: 200% center; }
+      }
+      
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(17, 24, 39, 0.5);
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background-color: #4c1d95;
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background-color: #6d28d9;
+      }
+
     </style>
   <script type="importmap">
 {
@@ -29,7 +67,7 @@
 }
 </script>
 </head>
-  <body class="bg-gray-900 text-gray-100">
+  <body class="text-gray-100">
     <div id="root"></div>
   </body>
 </html>
