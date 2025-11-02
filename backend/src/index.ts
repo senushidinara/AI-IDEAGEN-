@@ -1,6 +1,7 @@
-// Fix: Use a namespace import for Express to ensure correct type resolution
-// for Request and Response objects, avoiding conflicts with DOM types.
-import * as express from 'express';
+// Fix: Changed express import to use default and named imports.
+// This resolves type conflicts with DOM definitions for Request/Response
+// and correctly types the express app and its methods.
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { generateVideo as generateVideoFromGemini, generateSpeech } from './services/geminiService';
 import { generateVideoFromCerebras } from './services/cerebrasService';
@@ -13,12 +14,12 @@ const port = process.env.PORT || 8080;
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); // Increase limit for base64 image uploads
 
-app.get('/', (req: express.Request, res: express.Response) => {
+app.get('/', (req: Request, res: Response) => {
   res.send('Ideagen Backend is running! 🚀');
 });
 
 // The main endpoint for generating a video/audio clip
-app.post('/api/generate-clip', async (req: express.Request, res: express.Response) => {
+app.post('/api/generate-clip', async (req: Request, res: Response) => {
     try {
         const { prompt, image, videoConfig, voiceoverConfig, engine, voiceoverEngine } = req.body;
 
@@ -60,7 +61,7 @@ app.post('/api/generate-clip', async (req: express.Request, res: express.Respons
 });
 
 // Endpoint for cloning a voice
-app.post('/api/clone-voice', async (req: express.Request, res: express.Response) => {
+app.post('/api/clone-voice', async (req: Request, res: Response) => {
     try {
         const { name, files } = req.body; // files is an array of { base64, mimeType }
 

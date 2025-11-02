@@ -1,7 +1,4 @@
 
-
-
-
 import React, { useState, useEffect } from 'react';
 import { Storyboard } from './components/Storyboard';
 import { LoadingIndicator } from './components/LoadingIndicator';
@@ -13,12 +10,20 @@ import { ApiKeySelector } from './components/ApiKeySelector';
 
 type AppStatus = 'editing' | 'generating' | 'merging' | 'done';
 
+interface GeneratingClipInfo {
+    index: number;
+    total: number;
+    prompt: string;
+    script: string;
+}
+
 const App: React.FC = () => {
   const [status, setStatus] = useState<AppStatus>('editing');
   const [clips, setClips] = useState<Clip[]>(initialClips);
   const [finalVideoUrl, setFinalVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
+  const [generatingClipInfo, setGeneratingClipInfo] = useState<GeneratingClipInfo | null>(null);
   const [hasApiKey, setHasApiKey] = useState<boolean>(false);
   // Fix: Add state to track API key check to prevent UI flicker.
   const [isCheckingApiKey, setIsCheckingApiKey] = useState<boolean>(true);
@@ -43,11 +48,16 @@ const App: React.FC = () => {
     setStatus('generating');
 
     for (let i = 0; i < clips.length; i++) {
-        setLoadingMessage(`Generating clip ${i + 1} of ${clips.length} using ${engine}...`);
+        const currentClip = clips[i];
+        setLoadingMessage(`Generating clips using ${engine}...`);
+        setGeneratingClipInfo({
+            index: i + 1,
+            total: clips.length,
+            prompt: currentClip.prompt,
+            script: currentClip.voiceoverConfig.script
+        });
         
         try {
-            const currentClip = clips[i];
-            
             setClips(prev => prev.map(c => c.id === currentClip.id ? { ...c, isGenerating: true } : c));
 
             const { generatedVideoUrl, generatedAudioData } = await generateClip(currentClip, engine, voiceoverEngine);
@@ -63,11 +73,13 @@ const App: React.FC = () => {
             } else {
                 setError(`Error generating clip ${i + 1}: ${errorMessage}. Make sure the backend server is running.`);
             }
+            setGeneratingClipInfo(null);
             setStatus('editing');
             setClips(prev => prev.map(c => ({...c, isGenerating: false})));
             return;
         }
     }
+    setGeneratingClipInfo(null);
     setStatus('editing');
   }
 
@@ -105,7 +117,10 @@ const App: React.FC = () => {
      if (isCheckingApiKey) {
         return <LoadingIndicator message="Checking API key status..." />;
      }
-     if (status === 'generating' || status === 'merging') {
+     if (status === 'generating') {
+        return <LoadingIndicator message={loadingMessage} clipInfo={generatingClipInfo} />;
+     }
+     if (status === 'merging') {
         return <LoadingIndicator message={loadingMessage} />;
      }
      if (status === 'done' && finalVideoUrl) {
