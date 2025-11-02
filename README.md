@@ -2,29 +2,62 @@
 
 Welcome to Ideagen! 🚀 This powerful application transforms your browser into a mini movie studio, powered entirely by AI. You are the director! 🧑‍🎨
 
-Craft a narrative by building a sequence of short video clips in a storyboard. Bring your ideas to life from simple text prompts, add context with images, narrate your story with AI-powered voiceovers, and seamlessly merge everything into a final, polished video. The most magical part? The final video merge happens **entirely in your browser**—no servers, no uploads, just pure client-side power!
+Craft a narrative by building a sequence of short video clips in a storyboard. Bring your ideas to life from simple text prompts, add context with images, narrate your story with AI-powered voiceovers, and seamlessly merge everything into a final, polished video. The most magical part? The final video merge happens **entirery in your browser**—no servers, no uploads, just pure client-side power!
 
 ---
 
 <br/>
 
 <details>
-<summary><strong>🏁 Getting Started: Your First Masterpiece in 5 Steps</strong></summary>
+<summary><strong>🏁 Getting Started: Your First Masterpiece</strong></summary>
 
-Here's how you can go from idea to final video in minutes:
+Getting Ideagen running is simple and secure, using a standard local development setup.
 
-1.  **🔑 Select Your API Key:** The app will first prompt you to select your Google AI Studio API key. This is a necessary step as video generation is a billable service. Don't worry, the app provides a direct link to learn more about billing.
+1.  **🔑 Set Up Your API Key:** Follow the instructions in the **"Running Locally"** section below to configure your Google AI Studio API key in a local `.env` file. This is a required one-time setup.
 
-2.  **➕ Add a Clip:** Click the "Add Clip to Storyboard" button. This creates your first scene. You can add as many as you need to tell your story! The included "Stardust Gambit" script is a great place to start.
+2.  **🎬 Launch the App:** Open the `index.html` file in your browser using a local web server.
 
-3.  **✍️ Write a Prompt & Script:** For each clip, you have several creative tools:
-    *   **Prompt (Required):** In the "Prompt" box, describe what you want to see. Be creative! (e.g., _"A majestic eagle soaring through a thunderstorm, dramatic lighting."_)
-    *   **Image (Optional):** Upload an image to give the AI a strong starting point and more precise control over the output.
-    *   **Voiceover (Optional):** Write a script for the scene. The AI will generate a high-quality voiceover for you. You can even choose from different voices to match the tone!
+3.  **➕ Add a Clip:** Click the "Add Clip to Storyboard" button. The pre-loaded "Stardust Gambit" script is a great place to start exploring.
 
-4.  **⚙️ Generate Clips:** Once your storyboard is ready, click **"Generate All Clips"**. Ideagen will call the Gemini API to create the video and audio for each clip. You'll see previews appear in the storyboard as they're completed, allowing you to track progress in real-time.
+4.  **✍️ Write a Prompt & Script:** For each clip, describe what you want to see in the "Prompt" box. You can also upload a starting image and write a voiceover script.
 
-5.  **🎞️ Merge & Download:** After all clips are generated, the **"Merge & Finalize Video"** button will light up. Click it, and `ffmpeg.wasm` will work its magic right in your browser, stitching everything together. Once done, you can preview and download your final video!
+5.  **⚙️ Generate Clips:** Click **"Generate All Clips"**. Ideagen will call the Gemini API to create the video and audio for each clip. You'll see previews appear as they're completed.
+
+6.  **🎞️ Merge & Download:** After all clips are generated, click **"Merge & Finalize Video"**. `ffmpeg.wasm` will work its magic right in your browser. Once done, you can preview and download your final video!
+
+</details>
+
+<br/>
+
+<details>
+<summary><strong>💻 Running Locally: Step-by-Step Guide</strong></summary>
+
+To run this project on your own machine, you'll need to set up your API key in an environment file.
+
+1.  **Get a Google AI Studio API Key:**
+    *   Navigate to [Google AI Studio](https://aistudio.google.com/).
+    *   Click on **"Get API key"** and create a new key.
+    *   **Important:** Video generation is a billable feature. You may need to enable billing on your Google Cloud project. You can find more info here: [Google AI Billing Information](https://ai.google.dev/gemini-api/docs/billing).
+
+2.  **Create a `.env` File:**
+    *   In the root directory of this project, create a new file named `.env`.
+
+3.  **Add Your API Key to the `.env` File:**
+    *   Open the `.env` file and add the following line, replacing `YOUR_API_KEY_HERE` with the key you just created:
+    ```
+    API_KEY=YOUR_API_KEY_HERE
+    ```
+
+4.  **Serve the Application:**
+    *   This project is a pure client-side application and doesn't require a build step. You just need to serve the `index.html` file from a local web server.
+    *   If you have Python installed, you can easily start a server by running this command in your terminal from the project's root directory:
+        ```bash
+        python -m http.server
+        ```
+    *   Alternatively, you can use a tool like the [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension for VS Code.
+
+5.  **Open in Browser:**
+    *   Once your server is running, open your web browser and navigate to the local address (e.g., `http://localhost:8000`). The application should now load and detect your API key.
 
 </details>
 
@@ -61,7 +94,7 @@ This is where Ideagen truly shines, offering a serverless video processing pipel
 -   **Intelligent Synchronization:** The merging engine is incredibly robust. It intelligently handles clips with and without voiceovers by creating silent audio tracks where needed, guaranteeing all video and audio streams stay perfectly synchronized in the final output.
 
 ### ✨ **Engaging & User-Friendly Experience**
--   **Secure API Key Management:** The application only prompts for your Google AI Studio API key when it's needed, with graceful error handling and clear links to billing information.
+-   **Secure API Key Management:** The application prompts for your Google AI Studio API key via a local `.env` file, a standard and secure practice for web development.
 -   **Fun Loading Messages:** Stay entertained and informed with dynamic, creative loading messages while the AI works its magic. It turns waiting into part of the fun!
 
 </details>

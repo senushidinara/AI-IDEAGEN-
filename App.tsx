@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Storyboard } from './components/Storyboard';
 import { LoadingIndicator } from './components/LoadingIndicator';
@@ -15,33 +16,14 @@ const App: React.FC = () => {
   const [finalVideoUrl, setFinalVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
-  const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
+  const [hasApiKey, setHasApiKey] = useState<boolean>(false);
   
   useEffect(() => {
-    const checkApiKey = async () => {
-      if (window.aistudio) {
-        try {
-          const keyExists = await window.aistudio.hasSelectedApiKey();
-          setHasApiKey(keyExists);
-        } catch (e) {
-          console.error("Error checking for API key:", e);
-          setHasApiKey(false);
-        }
-      } else {
-        console.warn("aistudio environment not found. API key selection will not work.");
-        // Fallback for local dev allows proceeding if key is in environment
-        setHasApiKey(!!process.env.API_KEY);
-      }
-    };
-    checkApiKey();
+    // Check if the API key is provided via environment variables.
+    // In this specific development environment, process.env.API_KEY is made available
+    // on the client-side if it's defined in a `.env` file.
+    setHasApiKey(!!process.env.API_KEY);
   }, []);
-
-  const resetApiKey = () => {
-    setHasApiKey(false);
-    setStatus('editing');
-    setError('API Key not found or invalid. Please select a valid API key.');
-    setClips(prev => prev.map(c => ({...c, isGenerating: false})));
-  };
   
   const startGenerationProcess = async () => {
     setStatus('generating');
@@ -55,8 +37,8 @@ const App: React.FC = () => {
             setClips(prev => prev.map(c => c.id === currentClip.id ? { ...c, isGenerating: true } : c));
 
             const promises: [Promise<string>, Promise<Uint8Array | null>] = [
-                generateVideo(currentClip.prompt, currentClip.image, currentClip.videoConfig, resetApiKey),
-                currentClip.voiceoverConfig.script.trim() ? generateSpeech(currentClip.voiceoverConfig, resetApiKey) : Promise.resolve(null),
+                generateVideo(currentClip.prompt, currentClip.image, currentClip.videoConfig),
+                currentClip.voiceoverConfig.script.trim() ? generateSpeech(currentClip.voiceoverConfig) : Promise.resolve(null),
             ];
 
             const [generatedVideoUrl, generatedAudioData] = await Promise.all(promises);
@@ -64,10 +46,9 @@ const App: React.FC = () => {
             setClips(prev => prev.map(c => c.id === currentClip.id ? { ...c, generatedVideoUrl, generatedAudioData: generatedAudioData ?? undefined, isGenerating: false } : c));
         } catch (e: any) {
             console.error(e);
-            // Don't show the generic "API Key" error if a more specific one was thrown.
-            if (!e.message.includes('API Key not found or invalid')) {
-              setError(`Error generating clip ${i + 1}: ${e.message}`);
-            }
+            setError(`Error generating clip ${i + 1}: ${e.message}`);
+            // If there's an API key error, the message from geminiService will guide the user.
+            // No need to set hasApiKey to false, as they need to fix their .env and refresh.
             setStatus('editing');
             setClips(prev => prev.map(c => ({...c, isGenerating: false})));
             return;
@@ -128,31 +109,18 @@ const App: React.FC = () => {
         </header>
 
         <main className="bg-gray-900/40 backdrop-blur-md p-4 md:p-6 rounded-2xl shadow-2xl shadow-black/20 border border-gray-700/80 min-h-[400px] flex flex-col justify-center ring-1 ring-white/10">
-            {(() => {
-              if (hasApiKey === null) {
-                return <LoadingIndicator message="Initializing..." />;
-              }
-              if (hasApiKey === false) {
-                return <ApiKeySelector 
-                  error={error} 
-                  onApiKeySelected={() => {
-                    setHasApiKey(true);
-                    setError(null);
-                  }} 
-                />;
-              }
-              // hasApiKey is true, render the main app
-              return (
-                <>
-                  {error && (
-                    <div className="bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-lg mb-6 text-center">
-                        <p>{error}</p>
-                    </div>
-                  )}
-                  {renderAppContent()}
-                </>
-              );
-            })()}
+            {hasApiKey ? (
+              <>
+                {error && (
+                  <div className="bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-lg mb-6 text-center">
+                      <p>{error}</p>
+                  </div>
+                )}
+                {renderAppContent()}
+              </>
+            ) : (
+               <ApiKeySelector />
+            )}
         </main>
         <footer className="text-center mt-8 text-gray-500 text-sm">
             <p>&copy; {new Date().getFullYear()} Ideagen. All rights reserved.</p>

@@ -30,11 +30,11 @@ function decode(base64: string) {
 export const generateVideo = async (
   prompt: string,
   image: ImageFile | null,
-  config: VideoConfig,
-  onApiKeyError: () => void
+  config: VideoConfig
 ): Promise<string> => {
+  // Fix: Updated error message to refer to the .env file setup.
   if (!process.env.API_KEY) {
-    throw new Error('API key is not configured. Please select an API key.');
+    throw new Error('API key is not configured. Please create a .env file with your API_KEY.');
   }
 
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -78,20 +78,20 @@ export const generateVideo = async (
     return URL.createObjectURL(videoBlob);
 
   } catch (error: any) {
+    // Fix: Updated error message to refer to the .env file.
     if (error.message && error.message.includes('Requested entity was not found')) {
-      onApiKeyError();
-      throw new Error('API Key not found or invalid. Please select a valid API key.');
+      throw new Error('API Key not found or invalid. Please check the API_KEY in your .env file.');
     }
     throw error;
   }
 };
 
 export const generateSpeech = async (
-    config: VoiceoverConfig,
-    onApiKeyError: () => void
+    config: VoiceoverConfig
 ): Promise<Uint8Array> => {
+    // Fix: Updated error message to refer to the .env file setup.
     if (!process.env.API_KEY) {
-        throw new Error('API key is not configured. Please select an API key.');
+        throw new Error('API key is not configured. Please create a .env file with your API_KEY.');
     }
     
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -117,9 +117,9 @@ export const generateSpeech = async (
         return decode(base64Audio);
 
     } catch (error: any) {
+        // Fix: Updated error message to refer to the .env file.
         if (error.message && error.message.includes('Requested entity was not found')) {
-            onApiKeyError();
-            throw new Error('API Key not found or invalid. Please select a valid API key.');
+            throw new Error('API Key not found or invalid. Please check the API_KEY in your .env file.');
         }
         throw new Error(`Failed to generate speech: ${error.message}`);
     }
