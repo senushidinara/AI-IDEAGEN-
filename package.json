@@ -16,7 +16,8 @@
     "@ffmpeg/util": "0.12.1",
     "express": "^5.1.0",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.3"
+    "dotenv": "^17.2.3",
+    "dom": "^0.0.3"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

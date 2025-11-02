@@ -1,11 +1,13 @@
-import express, { Request, Response } from 'express';
+// Fix: Import `Application` type to explicitly type the express app.
+import express, { Request, Response, Application } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { generateVideo, generateSpeech } from './services/geminiService';
 
 dotenv.config();
 
-const app = express();
+// Fix: Explicitly type `app` as `Application` to fix type inference issues.
+const app: Application = express();
 const port = process.env.PORT || 8080;
 
 app.use(cors());

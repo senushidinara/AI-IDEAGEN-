@@ -1,3 +1,5 @@
+/// <reference lib="dom" />
+
 import React, { useState } from 'react';
 import type { Clip, ImageFile, VideoConfig, VoiceoverConfig } from '../types';
 import { fileToBase64 } from '../services/geminiService';
@@ -30,7 +32,8 @@ export const ClipForm: React.FC<ClipFormProps> = ({ clip, index, onUpdate, onRem
     const [isExpanded, setIsExpanded] = useState(index < 2); // Keep first two clips open by default
 
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
+        // Fix: Use `e.currentTarget` which is correctly typed as HTMLInputElement.
+        const file = e.currentTarget.files?.[0];
         if (file) {
             const { base64, mimeType } = await fileToBase64(file);
             const imageFile = { base64, mimeType };
@@ -47,15 +50,18 @@ export const ClipForm: React.FC<ClipFormProps> = ({ clip, index, onUpdate, onRem
     };
 
     const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        onUpdate({ prompt: e.target.value });
+        // Fix: Use `e.currentTarget` which is correctly typed as HTMLTextAreaElement.
+        onUpdate({ prompt: e.currentTarget.value });
     };
     
     const handleVideoConfigChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        onUpdate({ videoConfig: {...clip.videoConfig, [e.target.name]: e.target.value} as VideoConfig });
+        // Fix: Use `e.currentTarget` which is correctly typed as HTMLSelectElement.
+        onUpdate({ videoConfig: {...clip.videoConfig, [e.currentTarget.name]: e.currentTarget.value} as VideoConfig });
     }
     
     const handleVoiceoverChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLSelectElement>) => {
-        onUpdate({ voiceoverConfig: {...clip.voiceoverConfig, [e.target.name]: e.target.value} as VoiceoverConfig });
+        // Fix: Use `e.currentTarget` which is correctly typed.
+        onUpdate({ voiceoverConfig: {...clip.voiceoverConfig, [e.currentTarget.name]: e.currentTarget.value} as VoiceoverConfig });
     }
 
     return (
