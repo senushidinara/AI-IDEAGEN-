@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Modality } from '@google/genai';
 import type { VideoConfig, ImageFile, VoiceoverConfig } from '../../../types';
 
@@ -10,11 +11,12 @@ export const generateVideo = async (
   image: ImageFile | null,
   config: VideoConfig
 ): Promise<Blob> => {
-  if (!process.env.API_KEY) {
-    throw new Error('API key is not configured on the backend. Please check your .env file.');
+  const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  if (!geminiApiKey) {
+    throw new Error('Gemini API key (GEMINI_API_KEY or GOOGLE_API_KEY) is not configured in the backend environment variables.');
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: geminiApiKey });
   
   try {
     const generationPayload: any = {
@@ -46,7 +48,7 @@ export const generateVideo = async (
         throw new Error('Video generation succeeded, but no download link was found.');
     }
 
-    const videoResponse = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+    const videoResponse = await fetch(`${downloadLink}&key=${geminiApiKey}`);
     if (!videoResponse.ok) {
         throw new Error(`Failed to download video: ${videoResponse.statusText}`);
     }
@@ -55,7 +57,7 @@ export const generateVideo = async (
 
   } catch (error: any) {
     if (error.message && error.message.includes('API key not valid')) {
-      throw new Error('API Key is invalid. Please check the API_KEY in your backend .env file.');
+      throw new Error('The provided Gemini API key (GEMINI_API_KEY or GOOGLE_API_KEY) is invalid.');
     }
     throw error;
   }
@@ -64,11 +66,12 @@ export const generateVideo = async (
 export const generateSpeech = async (
     config: VoiceoverConfig
 ): Promise<Uint8Array> => {
-    if (!process.env.API_KEY) {
-        throw new Error('API key is not configured on the backend. Please check your .env file.');
+    const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    if (!geminiApiKey) {
+        throw new Error('Gemini API key (GEMINI_API_KEY or GOOGLE_API_KEY) is not configured in the backend environment variables.');
     }
     
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: geminiApiKey });
 
     try {
         const response = await ai.models.generateContent({
@@ -92,7 +95,7 @@ export const generateSpeech = async (
 
     } catch (error: any) {
         if (error.message && error.message.includes('API key not valid')) {
-             throw new Error('API Key is invalid. Please check the API_KEY in your backend .env file.');
+             throw new Error('The provided Gemini API key (GEMINI_API_KEY or GOOGLE_API_KEY) is invalid.');
         }
         throw new Error(`Failed to generate speech: ${error.message}`);
     }

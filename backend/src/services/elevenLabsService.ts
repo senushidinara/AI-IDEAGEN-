@@ -5,7 +5,7 @@ export const generateElevenLabsSpeech = async (text: string, voiceId: string = '
     const apiKey = process.env.ELEVENLABS_API_KEY;
     
     if (!apiKey || apiKey === 'YOUR_ELEVENLABS_API_KEY_HERE') {
-        throw new Error("ElevenLabs API key is not configured in the backend's .env file.");
+        throw new Error("ElevenLabs API key (ELEVENLABS_API_KEY) is not configured in the backend environment variables.");
     }
 
     const API_URL = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
@@ -59,7 +59,7 @@ export const addClonedVoice = async (
     const apiKey = process.env.ELEVENLABS_API_KEY;
     
     if (!apiKey || apiKey === 'YOUR_ELEVENLABS_API_KEY_HERE') {
-        throw new Error("ElevenLabs API key is not configured in the backend's .env file.");
+        throw new Error("ElevenLabs API key (ELEVENLABS_API_KEY) is not configured in the backend environment variables.");
     }
     
     if (!name || filesData.length === 0) {

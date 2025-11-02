@@ -1,15 +1,15 @@
-// Fix: Namespaced express types to resolve conflicts with global types.
+// Fix: Use a default import for Express. The namespace import (`import * as express`)
+// was causing type resolution issues. A default import allows calling `express()` to
+// create the app while still using namespaced types like `express.Request` to
+// avoid collisions with DOM types.
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { generateVideo as generateVideoFromGemini, generateSpeech } from './services/geminiService';
 import { generateVideoFromCerebras } from './services/cerebrasService';
 import { generateElevenLabsSpeech, addClonedVoice } from './services/elevenLabsService';
 
 
-dotenv.config();
-
-const app: express.Application = express();
+const app = express();
 const port = process.env.PORT || 8080;
 
 app.use(cors());

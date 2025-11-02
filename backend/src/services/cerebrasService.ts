@@ -16,7 +16,7 @@ export const generateVideoFromCerebras = async (
     const apiKey = process.env.CEREBRAS_API_KEY;
 
     if (!apiKey || apiKey === 'YOUR_CEREBRAS_API_KEY_HERE') {
-        throw new Error("Cerebras API key is not configured in the backend's .env file.");
+        throw new Error("Cerebras API key (CEREBRAS_API_KEY) is not configured in the backend environment variables.");
     }
 
     console.log("Simulating video generation with Cerebras for prompt:", prompt);

@@ -45,8 +45,9 @@ const b64toBlob = (b64Data: string, contentType = '', sliceSize = 512) => {
 
 
 export const generateClip = async (clip: Clip, engine: Engine, voiceoverEngine: VoiceoverEngine): Promise<{ generatedVideoUrl: string; generatedAudioData?: Uint8Array }> => {
-    // The backend is expected to be running on localhost:8080 during development
-    const backendUrl = 'http://localhost:8080/api/generate-clip';
+    // Use a relative path for production environments. This assumes the frontend is served
+    // from the same origin as the backend API, or a proxy is set up to forward requests.
+    const backendUrl = '/api/generate-clip';
 
     const response = await fetch(backendUrl, {
         method: 'POST',
@@ -74,7 +75,8 @@ export const generateClip = async (clip: Clip, engine: Engine, voiceoverEngine: 
 }
 
 export const cloneVoice = async (name: string, files: File[]): Promise<CustomVoice> => {
-    const backendUrl = 'http://localhost:8080/api/clone-voice';
+    // Use a relative path for production environments.
+    const backendUrl = '/api/clone-voice';
 
     const filesData = await Promise.all(
         files.map(file => fileToBase64(file))
