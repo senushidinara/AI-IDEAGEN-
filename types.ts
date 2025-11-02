@@ -1,3 +1,5 @@
+export type Engine = 'gemini' | 'cerebras';
+
 export interface VideoConfig {
   aspectRatio: '16:9' | '9:16';
   resolution: '720p' | '1080p';

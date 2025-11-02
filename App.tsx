@@ -1,11 +1,12 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Storyboard } from './components/Storyboard';
 import { LoadingIndicator } from './components/LoadingIndicator';
 import { VideoPlayer } from './components/VideoPlayer';
 import { generateClip } from './services/apiService';
 import { initialClips } from './initialClips';
-import type { Clip } from './types';
+import type { Clip, Engine } from './types';
 import { ApiKeySelector } from './components/ApiKeySelector';
 
 type AppStatus = 'editing' | 'generating' | 'merging' | 'done';
@@ -17,30 +18,47 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [hasApiKey, setHasApiKey] = useState<boolean>(false);
+  // Fix: Add state to track API key check to prevent UI flicker.
+  const [isCheckingApiKey, setIsCheckingApiKey] = useState<boolean>(true);
+  const [engine, setEngine] = useState<Engine>('gemini');
   
   useEffect(() => {
-    // This check now primarily serves as a visual guide for the user to set up their .env file.
-    // The actual API key usage is handled by the backend server.
-    setHasApiKey(!!process.env.API_KEY);
+    // Fix: Use window.aistudio.hasSelectedApiKey() to check for the API key per guidelines.
+    const checkApiKey = async () => {
+      // @ts-ignore
+      if (window.aistudio && typeof window.aistudio.hasSelectedApiKey === 'function') {
+        // @ts-ignore
+        setHasApiKey(await window.aistudio.hasSelectedApiKey());
+      }
+      setIsCheckingApiKey(false);
+    }
+    checkApiKey();
   }, []);
   
   const startGenerationProcess = async () => {
     setStatus('generating');
 
     for (let i = 0; i < clips.length; i++) {
-        setLoadingMessage(`Generating clip ${i + 1} of ${clips.length}...`);
+        setLoadingMessage(`Generating clip ${i + 1} of ${clips.length} using ${engine}...`);
         
         try {
             const currentClip = clips[i];
             
             setClips(prev => prev.map(c => c.id === currentClip.id ? { ...c, isGenerating: true } : c));
 
-            const { generatedVideoUrl, generatedAudioData } = await generateClip(currentClip);
+            const { generatedVideoUrl, generatedAudioData } = await generateClip(currentClip, engine);
 
             setClips(prev => prev.map(c => c.id === currentClip.id ? { ...c, generatedVideoUrl, generatedAudioData, isGenerating: false } : c));
         } catch (e: any) {
             console.error(e);
-            setError(`Error generating clip ${i + 1}: ${e.message}. Make sure the backend server is running and the API key is correct.`);
+            const errorMessage = e.message || '';
+            // Fix: Per guidelines, handle API key errors by resetting the key state, prompting the user to select again.
+            if (errorMessage.includes('Requested entity was not found') || errorMessage.includes('API Key not found')) {
+                setError('API Key not found or invalid. Please select your API key again.');
+                setHasApiKey(false);
+            } else {
+                setError(`Error generating clip ${i + 1}: ${errorMessage}. Make sure the backend server is running.`);
+            }
             setStatus('editing');
             setClips(prev => prev.map(c => ({...c, isGenerating: false})));
             return;
@@ -79,6 +97,10 @@ const App: React.FC = () => {
   };
   
   const renderAppContent = () => {
+     // Fix: Show a loading indicator while checking for the API key.
+     if (isCheckingApiKey) {
+        return <LoadingIndicator message="Checking API key status..." />;
+     }
      if (status === 'generating' || status === 'merging') {
         return <LoadingIndicator message={loadingMessage} />;
      }
@@ -87,7 +109,7 @@ const App: React.FC = () => {
      }
      
      const allClipsGenerated = clips.length > 0 && clips.every(c => c.generatedVideoUrl);
-     return <Storyboard clips={clips} setClips={setClips} onGenerate={handleGenerateAll} onMerge={handleMerge} canMerge={allClipsGenerated}/>;
+     return <Storyboard clips={clips} setClips={setClips} onGenerate={handleGenerateAll} onMerge={handleMerge} canMerge={allClipsGenerated} engine={engine} setEngine={setEngine} />;
   }
 
   return (
@@ -111,7 +133,7 @@ const App: React.FC = () => {
                 {renderAppContent()}
               </>
             ) : (
-               <ApiKeySelector />
+               <ApiKeySelector onKeySelected={() => setHasApiKey(true)} />
             )}
         </main>
         <footer className="text-center mt-8 text-gray-500 text-sm">

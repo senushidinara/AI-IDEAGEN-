@@ -1,6 +1,7 @@
 import React from 'react';
-import type { Clip } from '../types';
+import type { Clip, Engine } from '../types';
 import { ClipForm } from './ClipForm';
+import { EngineSelector } from './EngineSelector';
 
 interface StoryboardProps {
   clips: Clip[];
@@ -8,6 +9,8 @@ interface StoryboardProps {
   onGenerate: () => void;
   onMerge: () => void;
   canMerge: boolean;
+  engine: Engine;
+  setEngine: (engine: Engine) => void;
 }
 
 const FilmIcon = () => (
@@ -17,7 +20,7 @@ const FilmIcon = () => (
 );
 
 
-export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGenerate, onMerge, canMerge }) => {
+export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGenerate, onMerge, canMerge, engine, setEngine }) => {
 
   const addClip = () => {
     const newClip: Clip = {
@@ -76,6 +79,7 @@ export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGener
           </svg>
           Add Clip to Storyboard
         </button>
+        <EngineSelector engine={engine} setEngine={setEngine} />
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
           <button
             onClick={onGenerate}

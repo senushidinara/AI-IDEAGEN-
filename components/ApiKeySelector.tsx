@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 
 const KeyIcon = () => (
@@ -7,7 +8,21 @@ const KeyIcon = () => (
     </svg>
 );
 
-export const ApiKeySelector: React.FC = () => {
+// Fix: Update ApiKeySelector to use window.aistudio.openSelectKey per guidelines
+export const ApiKeySelector: React.FC<{ onKeySelected: () => void }> = ({ onKeySelected }) => {
+  const handleSelectKey = async () => {
+    // @ts-ignore
+    if (window.aistudio) {
+      // @ts-ignore
+      await window.aistudio.openSelectKey();
+      // Per guidelines, assume key selection was successful to avoid race conditions.
+      onKeySelected();
+    } else {
+        console.error('window.aistudio is not available.');
+        alert('API Key selection is not available in this environment.');
+    }
+  };
+  
   return (
     <div className="text-center p-4 sm:p-8 relative">
         <div className="absolute -inset-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg blur opacity-25 animate-pulse-slow"></div>
@@ -16,42 +31,14 @@ export const ApiKeySelector: React.FC = () => {
                 <KeyIcon />
                 <h2 className="text-3xl font-bold mb-4 text-white">Welcome to Ideagen!</h2>
                 <p className="text-gray-400 mb-8 max-w-lg mx-auto">
-                    To get started, please configure your Google AI Studio API key as an environment variable.
+                    To get started, please select your Google AI Studio API key. Video generation with Veo is a billable feature.
                 </p>
-            </div>
-            
-            <div className="space-y-6 text-gray-300">
-                <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 bg-purple-900/50 text-purple-300 rounded-full flex items-center justify-center font-bold ring-1 ring-purple-700">1</div>
-                    <div>
-                        <h3 className="font-semibold text-white">Get your API Key</h3>
-                        <p className="text-sm text-gray-400">
-                            Visit <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-purple-300">Google AI Studio</a> to create and copy your API key.
-                        </p>
-                    </div>
-                </div>
-                <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 bg-purple-900/50 text-purple-300 rounded-full flex items-center justify-center font-bold ring-1 ring-purple-700">2</div>
-                    <div>
-                        <h3 className="font-semibold text-white">Create a `.env` file</h3>
-                        <p className="text-sm text-gray-400">In the root directory of this project, create a new file and name it <code className="bg-gray-800 text-pink-400 px-1.5 py-0.5 rounded">.env</code>.</p>
-                    </div>
-                </div>
-                <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 bg-purple-900/50 text-purple-300 rounded-full flex items-center justify-center font-bold ring-1 ring-purple-700">3</div>
-                    <div>
-                        <h3 className="font-semibold text-white">Set the environment variable</h3>
-                        <p className="text-sm text-gray-400">Add the following line to your <code className="bg-gray-800 text-pink-400 px-1.5 py-0.5 rounded">.env</code> file, replacing the placeholder with your actual key:</p>
-                        <pre className="bg-gray-800 rounded-md p-3 mt-2 text-sm text-gray-300"><code>API_KEY=YOUR_API_KEY_HERE</code></pre>
-                    </div>
-                </div>
-                <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 bg-purple-900/50 text-purple-300 rounded-full flex items-center justify-center font-bold ring-1 ring-purple-700">4</div>
-                    <div>
-                        <h3 className="font-semibold text-white">Refresh the page</h3>
-                        <p className="text-sm text-gray-400">Once you've saved the file, refresh this page to start using the app.</p>
-                    </div>
-                </div>
+                <button
+                    onClick={handleSelectKey}
+                    className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-8 rounded-lg transition-all transform hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 focus:outline-none focus:ring-4 focus:ring-purple-500/50"
+                >
+                    Select API Key
+                </button>
             </div>
              <div className="mt-8 pt-6 border-t border-gray-700/50 text-center">
                 <a
@@ -60,7 +47,7 @@ export const ApiKeySelector: React.FC = () => {
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-purple-300 font-medium py-2 px-4 rounded-lg transition-colors text-sm"
                 >
-                  Learn about Billing (Video generation is a billable feature)
+                  Learn about Billing
                 </a>
             </div>
         </div>
