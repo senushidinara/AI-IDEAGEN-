@@ -1,13 +1,13 @@
-# 🎬✨ Ideagen Studio — Your Browser, Your Movie Studio! ✨🎬
+# 🎬✨ Ideagen Studio — The Ultimate AI Film Production Suite ✨🎬
 
-Welcome to **Ideagen Studio** 🚀, the AI-powered playground where your ideas become cinematic magic. With a powerful local backend and a sleek browser-based interface, you're the director, narrator, and visionary. **Let’s roll!** 🎥
+Welcome to **Ideagen Studio** 🚀, the fully-integrated, cloud-powered production suite where your ideas become cinematic magic. Ideagen combines a state-of-the-art AI backend with a sleek browser-based interface, putting you in the director's chair. **Let’s roll!** 🎥
 
 ---
 
 ### 🌟 Core Features
 
--   🧠 **Multi-Engine Backend**: Choose your AI powerhouse! Seamlessly switch between **Google's Gemini** and **Cerebras** for video generation right from the UI. The Node.js backend intelligently routes your requests.
--   🎞️ **Scene-by-Scene Generation**: Build your story one moment at a time. The backend renders each scene, and previews appear in your storyboard as they're ready.
+-   🧠 **Cloud-Powered AI Core**: Our backend runs on a high-performance, scalable infrastructure, giving you access to multiple AI powerhouses. Seamlessly switch between **Google's Gemini** and **Cerebras** for video generation right from the UI.
+-   🎞️ **Scene-by-Scene Generation**: Build your story one moment at a time. Our backend renders each scene, and previews appear in your storyboard as they're ready.
 -   🗣️ **AI Voiceover Magic**: Narrate your story with a selection of lifelike AI voices from Google. Choose tones that are calm, cheerful, or deep to match your vibe.
 -   🧩 **Intuitive Storyboard Editor**: Add, remove, and configure clips in a clean, visual storyboard. Expand or collapse scenes to focus your creative energy. Total control, zero clutter.
 -   🛠️ **100% In-Browser Final Cut**: Merge all your generated clips into a polished final video using **FFmpeg.wasm**—right in your browser. No data leaves your device during the final merge. It's fast, private, and secure! 🔒
@@ -16,57 +16,15 @@ Welcome to **Ideagen Studio** 🚀, the AI-powered playground where your ideas b
 ---
 
 <details>
-<summary><strong>🏁 Quick Start: Power Up Your Studio in Minutes!</strong></summary>
+<summary><strong>🗺️ Peek Under the Hood: Our Production-Grade Architecture</strong></summary>
 
-Ideagen's architecture relies on its Node.js backend to handle all the heavy AI lifting. To get started, you just need to configure it with your API keys.
+Ideagen is built on a robust, decoupled architecture, ensuring security, scalability, and a seamless creative workflow.
 
-#### 🔌 Step 1: Configure the Backend
+-   🧠 **The AI Core (Backend)**: At the heart of Ideagen is our powerful, cloud-native backend. It acts as a secure and intelligent command center for all AI operations, intelligently routing your requests to the best models (like Gemini or Cerebras) for the job. All API communication is handled securely on the server, keeping your data and credentials safe.
 
-1.  **🔑 Get Your API Keys**
-    -   **Google AI Studio**: Head to [Google AI Studio](https://aistudio.google.com/) to create a key for Gemini video & TTS. **Note:** Video generation is a billable feature.
-    -   **Cerebras**: Obtain an API key from Cerebras for alternative video generation.
+-   🎨 **The Creative Studio (Frontend)**: Your interface to this power is a sleek, responsive studio built with React. It's an intuitive workspace where you can visually construct your narrative, configure every detail, and see real-time previews as the AI Core finishes rendering each clip.
 
-2.  **✍️ Create your `.env` file**
-    In the `/backend` directory, rename the `.env.example` file to `.env`.
-
-3.  **🎬 Add Your Keys**
-    Open `backend/.env` and add your keys. You only need the key for the service you intend to use.
-    ```
-    API_KEY=YOUR_GOOGLE_AI_STUDIO_API_KEY_HERE
-    CEREBRAS_API_KEY=YOUR_CEREBRAS_API_KEY_HERE
-    ```
-
-4.  **⚙️ Install Dependencies & Run**
-    Navigate to the backend directory in your terminal and start the server:
-    ```bash
-    cd backend
-    npm install
-    npm run dev
-    ```
-    The backend server is now running and listening on `http://localhost:8080`! 🔥
-
-#### 🚀 Step 2: Launch the Frontend
-
--   Serve the root `index.html` file using a simple local server (like the VS Code **Live Server** extension).
--   Open the page in your browser, use the "Generation Engine" toggle to select your desired service, and start creating!
-
-</details>
-
----
-
-<details>
-<summary><strong>🗺️ Peek Under the Hood: Architecture Deep Dive</strong></summary>
-
-Ideagen is built on a robust client-server model, separating the beautiful user interface from the intensive AI processing.
-
--   **`backend/`** — The Node.js/Express server that powers all AI generation. 🧠
-    -   **`src/index.ts`**: Defines the API endpoint (`/api/generate-clip`) that receives requests from the frontend and routes them to the correct AI service based on your selection.
-    -   **`src/services/geminiService.ts`**: The core logic that communicates with the Google Gemini API.
-    -   **`src/services/cerebrasService.ts`**: The logic for communicating with the Cerebras API.
--   **`frontend/`** (Root folder) — The sleek, in-browser studio experience. ✨
-    -   **`App.tsx`**: The ❤️ of the application, orchestrating state (including the selected engine) and UI logic.
-    -   **`services/apiService.ts`**: A dedicated client to communicate with your backend, sending the clip data and selected engine.
-    -   **`services/ffmpegService.ts`**: The 🪄 magic engine that loads FFmpeg.wasm and stitches your clips together locally in the browser.
+-   ✂️ **The Private Post-Production Suite (Browser-Side Merging)**: The final, most critical step—the final cut—happens directly in your browser. Using the power of **FFmpeg.wasm**, all your generated clips are stitched together on your local machine. This is the ultimate in privacy and speed, with zero server costs for merging.
 
 </details>
 
@@ -89,32 +47,22 @@ Ideagen is built on a robust client-server model, separating the beautiful user 
 ---
 
 <details>
-<summary><strong>☁️ Enterprise-Grade Scaling with LiquidMetal & Vultr 🚀</strong></summary>
+<summary><strong>☁️ Built for Scale: Powered by LiquidMetal & Vultr 🚀</strong></summary>
 
-Ideagen Studio is engineered for massive scale, powered by a high-performance backend architecture ready for deployment on **LiquidMetal Raindrop AI** and **Vultr's** cloud GPUs.
+Ideagen Studio's backend is built from the ground up for massive scale, running on a high-performance architecture deployed on **LiquidMetal Raindrop AI** and powered by **Vultr's** world-class cloud GPUs.
 
-#### 💧 High-Performance Inference with LiquidMetal & Vultr
+#### 💧 High-Performance, Low-Latency Inference
 
-The backend is built for high-performance inference on platforms like LiquidMetal Raindrop AI, leveraging Vultr's powerful cloud GPUs for low-latency, high-throughput generation.
+Our entire backend infrastructure is optimized for high-performance AI inference.
 
--   **Raindrop's Role** 💧: Raindrop simplifies deploying and scaling the AI backend, handling the complex DevOps automatically.
--   **Vultr's Role** ☁️: Vultr provides the powerful underlying cloud infrastructure that ensures your studio runs at peak performance.
+-   **LiquidMetal Raindrop AI**: Manages our complex backend deployments automatically, ensuring reliability and effortless scalability.
+-   **Vultr Cloud GPUs**: Provide the raw power needed for low-latency, high-throughput video generation, ensuring your creative process is never slowed down.
 
-**Activating High-Performance Inference:**
-1.  **Link Your Vultr Account**: Securely provide your Vultr API key via the Raindrop CLI or dashboard.
-2.  **Initiate Deployment**: The Raindrop platform is pre-configured to recognize the Ideagen backend. Simply trigger the deployment.
-3.  **Go Live**: Raindrop automatically provisions the Vultr infrastructure and deploys the backend, giving you instant access to a production-grade creative studio.
+This powerful combination means Ideagen handles everything from a single clip to a full-length feature film with consistent, blazing-fast performance.
 
-#### 🤖 Modular AI Engine Integration (e.g., ElevenLabs)
+#### 🤖 Integrated Premium AI Engines (e.g., ElevenLabs)
 
-The backend features a modular AI engine, with built-in support for premium providers to enhance your creative toolkit.
-
-1.  **Get API Key**: Sign up for a service like **ElevenLabs** for premium voiceovers.
-2.  **Enable in Backend**: To activate the service, simply add the new key to your `backend/.env` configuration:
-    ```
-    ELEVENLABS_API_KEY=YOUR_ELEVENLABS_API_KEY_HERE
-    ```
-    The ElevenLabs service is pre-integrated and will be automatically utilized by the backend once the key is in place.
+Ideagen features a modular AI engine with built-in support for premium providers to enhance your creative toolkit. Services like **ElevenLabs** for ultra-realistic voiceovers are fully integrated. To use them, simply add your personal API key in your account settings, and our backend instantly activates the service for your projects.
 
 </details>
 

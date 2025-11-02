@@ -1,6 +1,5 @@
-
-// Fix: Use aliased express types to resolve potential type conflicts with global DOM types.
-import express, { Request as ExpressRequest, Response as ExpressResponse, Application } from 'express';
+// Fix: Use ES module import for Express to align with project's module system.
+import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { generateVideo as generateVideoFromGemini, generateSpeech } from './services/geminiService';
@@ -15,12 +14,12 @@ const port = process.env.PORT || 8080;
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); // Increase limit for base64 image uploads
 
-app.get('/', (req: ExpressRequest, res: ExpressResponse) => {
+app.get('/', (req: Request, res: Response) => {
   res.send('Ideagen Backend is running! 🚀');
 });
 
 // The main endpoint for generating a video/audio clip
-app.post('/api/generate-clip', async (req: ExpressRequest, res: ExpressResponse) => {
+app.post('/api/generate-clip', async (req: Request, res: Response) => {
     try {
         const { prompt, image, videoConfig, voiceoverConfig, engine } = req.body;
 
