@@ -27,3 +27,8 @@ export interface Clip {
   generatedVideoUrl?: string;
   generatedAudioData?: Uint8Array;
 }
+
+export interface CustomVoice {
+  id: string;
+  name: string;
+}

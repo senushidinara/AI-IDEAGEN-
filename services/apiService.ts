@@ -1,4 +1,4 @@
-import type { Clip, Engine, VoiceoverEngine } from '../types';
+import type { Clip, Engine, VoiceoverEngine, CustomVoice } from '../types';
 
 // This function converts a file to a base64 string for upload
 export const fileToBase64 = (file: File): Promise<{base64: string, mimeType: string}> => {
@@ -72,3 +72,24 @@ export const generateClip = async (clip: Clip, engine: Engine, voiceoverEngine: 
     
     return { generatedVideoUrl: videoUrl, generatedAudioData: audioData };
 }
+
+export const cloneVoice = async (name: string, files: File[]): Promise<CustomVoice> => {
+    const backendUrl = 'http://localhost:8080/api/clone-voice';
+
+    const filesData = await Promise.all(
+        files.map(file => fileToBase64(file))
+    );
+
+    const response = await fetch(backendUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, files: filesData })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred while cloning the voice.' }));
+        throw new Error(errorData.message || `Backend request failed with status ${response.status}`);
+    }
+
+    return await response.json();
+};

@@ -1,28 +1,26 @@
-// Fix: The previous ES module imports were causing type errors.
-// Using CommonJS-style imports for Express, CORS, and Dotenv resolves issues with `req.body`, `res.send`, and `res.status` by ensuring proper type resolution.
-import express = require('express');
-import { Application, Request, Response } from 'express';
-import cors = require('cors');
-import dotenv = require('dotenv');
+// Fix: Namespaced express types to resolve conflicts with global types.
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
 import { generateVideo as generateVideoFromGemini, generateSpeech } from './services/geminiService';
 import { generateVideoFromCerebras } from './services/cerebrasService';
-import { generateElevenLabsSpeech } from './services/elevenLabsService';
+import { generateElevenLabsSpeech, addClonedVoice } from './services/elevenLabsService';
 
 
 dotenv.config();
 
-const app: Application = express();
+const app: express.Application = express();
 const port = process.env.PORT || 8080;
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); // Increase limit for base64 image uploads
 
-app.get('/', (req: Request, res: Response) => {
+app.get('/', (req: express.Request, res: express.Response) => {
   res.send('Ideagen Backend is running! 🚀');
 });
 
 // The main endpoint for generating a video/audio clip
-app.post('/api/generate-clip', async (req: Request, res: Response) => {
+app.post('/api/generate-clip', async (req: express.Request, res: express.Response) => {
     try {
         const { prompt, image, videoConfig, voiceoverConfig, engine, voiceoverEngine } = req.body;
 
@@ -60,6 +58,28 @@ app.post('/api/generate-clip', async (req: Request, res: Response) => {
     } catch (e: any) {
         console.error('Error generating clip:', e);
         res.status(500).json({ message: e.message || 'An internal server error occurred.' });
+    }
+});
+
+// Endpoint for cloning a voice
+app.post('/api/clone-voice', async (req: express.Request, res: express.Response) => {
+    try {
+        const { name, files } = req.body; // files is an array of { base64, mimeType }
+
+        if (!name || !files || !Array.isArray(files) || files.length === 0) {
+            return res.status(400).json({ message: 'Missing voice name or audio files.' });
+        }
+        
+        // In a real app with multipart/form-data, you'd use multer middleware here
+        // and access files via req.files.
+
+        const newVoice = await addClonedVoice(name, files);
+
+        res.status(201).json(newVoice); // 201 Created
+
+    } catch (e: any) {
+        console.error('Error cloning voice:', e);
+        res.status(500).json({ message: e.message || 'An internal server error occurred during voice cloning.' });
     }
 });
 

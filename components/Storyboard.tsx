@@ -1,8 +1,9 @@
-import React from 'react';
-import type { Clip, Engine, VoiceoverEngine } from '../types';
+import React, { useState } from 'react';
+import type { Clip, Engine, VoiceoverEngine, CustomVoice } from '../types';
 import { ClipForm } from './ClipForm';
 import { EngineSelector } from './EngineSelector';
 import { VoiceoverEngineSelector } from './VoiceoverEngineSelector';
+import { VoiceCloneModal } from './VoiceCloneModal';
 
 interface StoryboardProps {
   clips: Clip[];
@@ -14,6 +15,8 @@ interface StoryboardProps {
   setEngine: (engine: Engine) => void;
   voiceoverEngine: VoiceoverEngine;
   setVoiceoverEngine: (engine: VoiceoverEngine) => void;
+  customVoices: CustomVoice[];
+  setCustomVoices: React.Dispatch<React.SetStateAction<CustomVoice[]>>;
 }
 
 const FilmIcon = () => (
@@ -22,9 +25,16 @@ const FilmIcon = () => (
     </svg>
 );
 
+const MicIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+      <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0a5 5 0 01-5 5A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
+    </svg>
+);
 
-export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGenerate, onMerge, canMerge, engine, setEngine, voiceoverEngine, setVoiceoverEngine }) => {
 
+export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGenerate, onMerge, canMerge, engine, setEngine, voiceoverEngine, setVoiceoverEngine, customVoices, setCustomVoices }) => {
+  const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
+  
   const addClip = () => {
     const newClip: Clip = {
       id: Date.now(),
@@ -63,6 +73,20 @@ export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGener
       }
     })));
   };
+  
+  const handleVoiceCloned = (newVoice: CustomVoice) => {
+    setCustomVoices(prev => [...prev, newVoice]);
+    // Also update the current clip to use this new voice
+    setClips(prevClips => {
+      const lastClip = prevClips[prevClips.length - 1];
+      if (lastClip) {
+          lastClip.voiceoverConfig.voice = newVoice.id;
+      }
+      return [...prevClips];
+    });
+    setIsCloneModalOpen(false); // Close modal on success
+  };
+
 
   const canGenerate = clips.length > 0 && clips.every(c => c.prompt.trim() !== '');
 
@@ -83,6 +107,7 @@ export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGener
             onUpdate={(updated) => updateClip(clip.id, updated)}
             onRemove={() => removeClip(clip.id)}
             voiceoverEngine={voiceoverEngine}
+            customVoices={customVoices}
           />
         ))}
       </div>
@@ -101,6 +126,18 @@ export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGener
           <EngineSelector engine={engine} setEngine={setEngine} />
           <VoiceoverEngineSelector engine={voiceoverEngine} setEngine={handleVoiceoverEngineChange} />
         </div>
+         {voiceoverEngine === 'elevenlabs' && (
+            <div className="-mt-1">
+                <button
+                    type="button"
+                    onClick={() => setIsCloneModalOpen(true)}
+                    className="w-full text-sm bg-gray-800/60 hover:bg-gray-700/80 text-purple-300 font-medium py-2.5 px-4 rounded-lg transition-colors border border-gray-700 flex items-center justify-center gap-2"
+                >
+                    <MicIcon />
+                    Add Custom Voice (Voice Cloning)
+                </button>
+            </div>
+        )}
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
           <button
             onClick={onGenerate}
@@ -118,6 +155,12 @@ export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGener
           </button>
         </div>
       </div>
+       {isCloneModalOpen && (
+            <VoiceCloneModal 
+                onClose={() => setIsCloneModalOpen(false)}
+                onVoiceCloned={handleVoiceCloned}
+            />
+        )}
     </div>
   );
 };

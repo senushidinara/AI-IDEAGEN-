@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 
 import React, { useState } from 'react';
-import type { Clip, ImageFile, VideoConfig, VoiceoverConfig, VoiceoverEngine } from '../types';
+import type { Clip, ImageFile, VideoConfig, VoiceoverConfig, VoiceoverEngine, CustomVoice } from '../types';
 import { fileToBase64 } from '../services/geminiService';
 
 interface ClipFormProps {
@@ -10,6 +10,7 @@ interface ClipFormProps {
     onUpdate: (updatedClip: Partial<Clip>) => void;
     onRemove: () => void;
     voiceoverEngine: VoiceoverEngine;
+    customVoices: CustomVoice[];
 }
 
 const geminiVoices = [
@@ -37,10 +38,9 @@ const UploadIcon = () => (
 
 const inputBaseClasses = "w-full bg-gray-900/50 border border-gray-700 rounded-lg p-2.5 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors focus:outline-none";
 
-export const ClipForm: React.FC<ClipFormProps> = ({ clip, index, onUpdate, onRemove, voiceoverEngine }) => {
+export const ClipForm: React.FC<ClipFormProps> = ({ clip, index, onUpdate, onRemove, voiceoverEngine, customVoices }) => {
     const [imagePreview, setImagePreview] = useState<string | null>(clip.image ? `data:${clip.image.mimeType};base64,${clip.image.base64}` : null);
     const [isExpanded, setIsExpanded] = useState(index < 2); // Keep first two clips open by default
-    const voices = voiceoverEngine === 'elevenlabs' ? elevenLabsVoices : geminiVoices;
 
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         // Fix: Use `e.currentTarget` which is correctly typed as HTMLInputElement.
@@ -146,7 +146,20 @@ export const ClipForm: React.FC<ClipFormProps> = ({ clip, index, onUpdate, onRem
                             <div>
                                 <label htmlFor={`voice-${clip.id}`} className="block text-sm font-medium text-gray-300 mb-1.5">Voice</label>
                                 <select id={`voice-${clip.id}`} name="voice" value={clip.voiceoverConfig.voice} onChange={handleVoiceoverChange} className={inputBaseClasses}>
-                                    {voices.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                                    {voiceoverEngine === 'elevenlabs' ? (
+                                        <>
+                                            <optgroup label="Featured Voices">
+                                                {elevenLabsVoices.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                                            </optgroup>
+                                            {customVoices.length > 0 && (
+                                                <optgroup label="Your Custom Voices">
+                                                    {customVoices.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                                                </optgroup>
+                                            )}
+                                        </>
+                                    ) : (
+                                        geminiVoices.map(v => <option key={v.id} value={v.id}>{v.name}</option>)
+                                    )}
                                 </select>
                             </div>
                         </div>

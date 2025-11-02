@@ -1,13 +1,14 @@
 
 
 
+
 import React, { useState, useEffect } from 'react';
 import { Storyboard } from './components/Storyboard';
 import { LoadingIndicator } from './components/LoadingIndicator';
 import { VideoPlayer } from './components/VideoPlayer';
 import { generateClip } from './services/apiService';
 import { initialClips } from './initialClips';
-import type { Clip, Engine, VoiceoverEngine } from './types';
+import type { Clip, Engine, VoiceoverEngine, CustomVoice } from './types';
 import { ApiKeySelector } from './components/ApiKeySelector';
 
 type AppStatus = 'editing' | 'generating' | 'merging' | 'done';
@@ -23,6 +24,7 @@ const App: React.FC = () => {
   const [isCheckingApiKey, setIsCheckingApiKey] = useState<boolean>(true);
   const [engine, setEngine] = useState<Engine>('gemini');
   const [voiceoverEngine, setVoiceoverEngine] = useState<VoiceoverEngine>('gemini');
+  const [customVoices, setCustomVoices] = useState<CustomVoice[]>([]);
   
   useEffect(() => {
     // Fix: Use window.aistudio.hasSelectedApiKey() to check for the API key per guidelines.
@@ -111,7 +113,7 @@ const App: React.FC = () => {
      }
      
      const allClipsGenerated = clips.length > 0 && clips.every(c => c.generatedVideoUrl);
-     return <Storyboard clips={clips} setClips={setClips} onGenerate={handleGenerateAll} onMerge={handleMerge} canMerge={allClipsGenerated} engine={engine} setEngine={setEngine} voiceoverEngine={voiceoverEngine} setVoiceoverEngine={setVoiceoverEngine} />;
+     return <Storyboard clips={clips} setClips={setClips} onGenerate={handleGenerateAll} onMerge={handleMerge} canMerge={allClipsGenerated} engine={engine} setEngine={setEngine} voiceoverEngine={voiceoverEngine} setVoiceoverEngine={setVoiceoverEngine} customVoices={customVoices} setCustomVoices={setCustomVoices} />;
   }
 
   return (

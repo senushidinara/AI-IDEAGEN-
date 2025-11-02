@@ -6,6 +6,22 @@ interface VoiceoverEngineSelectorProps {
   setEngine: (engine: VoiceoverEngine) => void;
 }
 
+const ElevenLabsLogo = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+    className="inline-block -mt-0.5"
+    aria-hidden="true"
+  >
+    <path d="M8 6H10V18H8V6Z" />
+    <path d="M14 9H16V18H14V9Z" />
+  </svg>
+);
+
+
 const EngineButton: React.FC<{
     label: string;
     value: VoiceoverEngine;
@@ -16,11 +32,12 @@ const EngineButton: React.FC<{
     return (
         <button
             onClick={() => onClick(value)}
-            className={`relative flex-1 px-4 py-2 text-sm font-semibold transition-colors duration-300 focus:outline-none ${
+            className={`relative flex-1 px-4 py-2 text-sm font-semibold transition-colors duration-300 focus:outline-none flex items-center justify-center gap-2 ${
                 isActive ? 'text-white' : 'text-gray-400 hover:text-white'
             }`}
         >
-            {label}
+            <span>{label}</span>
+            {value === 'elevenlabs' && isActive && <ElevenLabsLogo />}
         </button>
     );
 };
