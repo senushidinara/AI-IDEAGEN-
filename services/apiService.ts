@@ -74,6 +74,23 @@ export const generateClip = async (clip: Clip, engine: Engine, voiceoverEngine: 
     return { generatedVideoUrl: videoUrl, generatedAudioData: audioData };
 }
 
+export const generatePreviewImage = async (prompt: string): Promise<{ previewImageBase64: string }> => {
+    const backendUrl = '/api/generate-preview-image';
+    const response = await fetch(backendUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to generate preview image.' }));
+        throw new Error(errorData.message);
+    }
+    
+    return response.json();
+};
+
+
 export const cloneVoice = async (name: string, files: File[]): Promise<CustomVoice> => {
     // Use a relative path for production environments.
     const backendUrl = '/api/clone-voice';

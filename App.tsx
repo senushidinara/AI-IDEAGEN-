@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Storyboard } from './components/Storyboard';
 import { LoadingIndicator } from './components/LoadingIndicator';
 import { VideoPlayer } from './components/VideoPlayer';
-import { generateClip } from './services/apiService';
+import { generateClip, generatePreviewImage } from './services/apiService';
 import { initialClips } from './initialClips';
 import type { Clip, Engine, VoiceoverEngine, CustomVoice } from './types';
 import { ApiKeySelector } from './components/ApiKeySelector';
@@ -60,9 +60,15 @@ const App: React.FC = () => {
         try {
             setClips(prev => prev.map(c => c.id === currentClip.id ? { ...c, isGenerating: true } : c));
 
-            const { generatedVideoUrl, generatedAudioData } = await generateClip(currentClip, engine, voiceoverEngine);
+            // First, generate a preview image for instant feedback
+            const { previewImageBase64 } = await generatePreviewImage(currentClip.prompt);
+            const previewImageUrl = `data:image/png;base64,${previewImageBase64}`;
+            setClips(prev => prev.map(c => c.id === currentClip.id ? { ...c, previewImageUrl } : c));
 
+            // Then, generate the full video and audio
+            const { generatedVideoUrl, generatedAudioData } = await generateClip(currentClip, engine, voiceoverEngine);
             setClips(prev => prev.map(c => c.id === currentClip.id ? { ...c, generatedVideoUrl, generatedAudioData, isGenerating: false } : c));
+
         } catch (e: any) {
             console.error(e);
             const errorMessage = e.message || '';

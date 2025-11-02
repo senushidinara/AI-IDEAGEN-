@@ -1,9 +1,9 @@
-// Fix: Changed express import to use default and named imports.
+// Fix: Use `import express = require('express')` syntax.
 // This resolves type conflicts with DOM definitions for Request/Response
-// and correctly types the express app and its methods.
-import express, { Request, Response } from 'express';
+// by using fully qualified type names like `express.Request`.
+import express = require('express');
 import cors from 'cors';
-import { generateVideo as generateVideoFromGemini, generateSpeech } from './services/geminiService';
+import { generateVideo as generateVideoFromGemini, generateSpeech, generateImage } from './services/geminiService';
 import { generateVideoFromCerebras } from './services/cerebrasService';
 import { generateElevenLabsSpeech, addClonedVoice } from './services/elevenLabsService';
 
@@ -14,12 +14,12 @@ const port = process.env.PORT || 8080;
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); // Increase limit for base64 image uploads
 
-app.get('/', (req: Request, res: Response) => {
+app.get('/', (req: express.Request, res: express.Response) => {
   res.send('Ideagen Backend is running! 🚀');
 });
 
 // The main endpoint for generating a video/audio clip
-app.post('/api/generate-clip', async (req: Request, res: Response) => {
+app.post('/api/generate-clip', async (req: express.Request, res: express.Response) => {
     try {
         const { prompt, image, videoConfig, voiceoverConfig, engine, voiceoverEngine } = req.body;
 
@@ -60,8 +60,22 @@ app.post('/api/generate-clip', async (req: Request, res: Response) => {
     }
 });
 
+app.post('/api/generate-preview-image', async (req: express.Request, res: express.Response) => {
+    try {
+        const { prompt } = req.body;
+        if (!prompt) {
+            return res.status(400).json({ message: 'Prompt is required.' });
+        }
+        const imageBase64 = await generateImage(prompt);
+        res.status(200).json({ previewImageBase64: imageBase64 });
+    } catch (e: any) {
+        console.error('Error generating preview image:', e);
+        res.status(500).json({ message: e.message || 'An internal server error occurred.' });
+    }
+});
+
 // Endpoint for cloning a voice
-app.post('/api/clone-voice', async (req: Request, res: Response) => {
+app.post('/api/clone-voice', async (req: express.Request, res: express.Response) => {
     try {
         const { name, files } = req.body; // files is an array of { base64, mimeType }
 

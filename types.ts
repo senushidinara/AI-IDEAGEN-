@@ -24,6 +24,7 @@ export interface Clip {
   voiceoverConfig: VoiceoverConfig;
   // For generated content
   isGenerating?: boolean;
+  previewImageUrl?: string;
   generatedVideoUrl?: string;
   generatedAudioData?: Uint8Array;
 }

@@ -164,17 +164,25 @@ export const ClipForm: React.FC<ClipFormProps> = ({ clip, index, onUpdate, onRem
                             </div>
                         </div>
                         {/* Preview Area */}
-                        {(clip.generatedVideoUrl || clip.isGenerating) && (
-                            <div className="md:col-span-2 mt-4 p-1 bg-black rounded-lg border border-gray-700">
-                            {clip.isGenerating && (
-                                    <div className="aspect-video flex flex-col items-center justify-center text-center p-4">
-                                        <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mb-3"></div>
-                                        <p className="text-sm text-gray-400">Generating video...</p>
-                                    </div>
-                            )}
-                            {clip.generatedVideoUrl && !clip.isGenerating && (
-                                    <video src={clip.generatedVideoUrl} controls muted loop className="w-full h-auto rounded"></video>
-                            )}
+                        {(clip.isGenerating || clip.generatedVideoUrl) && (
+                            <div className="md:col-span-2 mt-4">
+                                <div className="aspect-video bg-black rounded-lg border border-gray-700 relative overflow-hidden">
+                                    {clip.generatedVideoUrl && !clip.isGenerating ? (
+                                        <video src={clip.generatedVideoUrl} controls muted loop className="w-full h-full object-contain"></video>
+                                    ) : (
+                                        <>
+                                            {clip.previewImageUrl && (
+                                                <img src={clip.previewImageUrl} alt="Generation preview" className="w-full h-full object-cover absolute inset-0 opacity-50" />
+                                            )}
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-black/60">
+                                                <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mb-3"></div>
+                                                <p className="text-sm text-gray-300 font-semibold">
+                                                    {clip.previewImageUrl ? 'Generating video...' : 'Generating preview...'}
+                                                </p>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
