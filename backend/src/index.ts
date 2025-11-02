@@ -1,8 +1,6 @@
-// Fix: Use a default import for Express. The namespace import (`import * as express`)
-// was causing type resolution issues. A default import allows calling `express()` to
-// create the app while still using namespaced types like `express.Request` to
-// avoid collisions with DOM types.
-import express from 'express';
+// Fix: Use a namespace import for Express to ensure correct type resolution
+// for Request and Response objects, avoiding conflicts with DOM types.
+import * as express from 'express';
 import cors from 'cors';
 import { generateVideo as generateVideoFromGemini, generateSpeech } from './services/geminiService';
 import { generateVideoFromCerebras } from './services/cerebrasService';
