@@ -1,4 +1,5 @@
 export type Engine = 'gemini' | 'cerebras';
+export type VoiceoverEngine = 'gemini' | 'elevenlabs';
 
 export interface VideoConfig {
   aspectRatio: '16:9' | '9:16';

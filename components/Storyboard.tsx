@@ -1,7 +1,8 @@
 import React from 'react';
-import type { Clip, Engine } from '../types';
+import type { Clip, Engine, VoiceoverEngine } from '../types';
 import { ClipForm } from './ClipForm';
 import { EngineSelector } from './EngineSelector';
+import { VoiceoverEngineSelector } from './VoiceoverEngineSelector';
 
 interface StoryboardProps {
   clips: Clip[];
@@ -11,6 +12,8 @@ interface StoryboardProps {
   canMerge: boolean;
   engine: Engine;
   setEngine: (engine: Engine) => void;
+  voiceoverEngine: VoiceoverEngine;
+  setVoiceoverEngine: (engine: VoiceoverEngine) => void;
 }
 
 const FilmIcon = () => (
@@ -20,7 +23,7 @@ const FilmIcon = () => (
 );
 
 
-export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGenerate, onMerge, canMerge, engine, setEngine }) => {
+export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGenerate, onMerge, canMerge, engine, setEngine, voiceoverEngine, setVoiceoverEngine }) => {
 
   const addClip = () => {
     const newClip: Clip = {
@@ -33,7 +36,7 @@ export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGener
       },
       voiceoverConfig: {
         script: '',
-        voice: 'Kore',
+        voice: voiceoverEngine === 'gemini' ? 'Kore' : '21m00Tcm4TlvDq8ikWAM',
       },
     };
     setClips([...clips, newClip]);
@@ -45,6 +48,20 @@ export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGener
 
   const removeClip = (id: number) => {
     setClips(clips.filter(clip => clip.id !== id));
+  };
+  
+  const handleVoiceoverEngineChange = (newEngine: VoiceoverEngine) => {
+    setVoiceoverEngine(newEngine);
+    // When the engine changes, update all clips to use the new default voice
+    // to prevent an invalid state (e.g., a Gemini voice ID with ElevenLabs engine).
+    const defaultVoice = newEngine === 'gemini' ? 'Kore' : '21m00Tcm4TlvDq8ikWAM'; // Gemini 'Kore' vs ElevenLabs 'Rachel'
+    setClips(prevClips => prevClips.map(clip => ({
+      ...clip,
+      voiceoverConfig: {
+        ...clip.voiceoverConfig,
+        voice: defaultVoice
+      }
+    })));
   };
 
   const canGenerate = clips.length > 0 && clips.every(c => c.prompt.trim() !== '');
@@ -65,6 +82,7 @@ export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGener
             index={index}
             onUpdate={(updated) => updateClip(clip.id, updated)}
             onRemove={() => removeClip(clip.id)}
+            voiceoverEngine={voiceoverEngine}
           />
         ))}
       </div>
@@ -79,7 +97,10 @@ export const Storyboard: React.FC<StoryboardProps> = ({ clips, setClips, onGener
           </svg>
           Add Clip to Storyboard
         </button>
-        <EngineSelector engine={engine} setEngine={setEngine} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <EngineSelector engine={engine} setEngine={setEngine} />
+          <VoiceoverEngineSelector engine={voiceoverEngine} setEngine={handleVoiceoverEngineChange} />
+        </div>
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
           <button
             onClick={onGenerate}

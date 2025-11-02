@@ -1,12 +1,13 @@
 
 
+
 import React, { useState, useEffect } from 'react';
 import { Storyboard } from './components/Storyboard';
 import { LoadingIndicator } from './components/LoadingIndicator';
 import { VideoPlayer } from './components/VideoPlayer';
 import { generateClip } from './services/apiService';
 import { initialClips } from './initialClips';
-import type { Clip, Engine } from './types';
+import type { Clip, Engine, VoiceoverEngine } from './types';
 import { ApiKeySelector } from './components/ApiKeySelector';
 
 type AppStatus = 'editing' | 'generating' | 'merging' | 'done';
@@ -21,6 +22,7 @@ const App: React.FC = () => {
   // Fix: Add state to track API key check to prevent UI flicker.
   const [isCheckingApiKey, setIsCheckingApiKey] = useState<boolean>(true);
   const [engine, setEngine] = useState<Engine>('gemini');
+  const [voiceoverEngine, setVoiceoverEngine] = useState<VoiceoverEngine>('gemini');
   
   useEffect(() => {
     // Fix: Use window.aistudio.hasSelectedApiKey() to check for the API key per guidelines.
@@ -46,7 +48,7 @@ const App: React.FC = () => {
             
             setClips(prev => prev.map(c => c.id === currentClip.id ? { ...c, isGenerating: true } : c));
 
-            const { generatedVideoUrl, generatedAudioData } = await generateClip(currentClip, engine);
+            const { generatedVideoUrl, generatedAudioData } = await generateClip(currentClip, engine, voiceoverEngine);
 
             setClips(prev => prev.map(c => c.id === currentClip.id ? { ...c, generatedVideoUrl, generatedAudioData, isGenerating: false } : c));
         } catch (e: any) {
@@ -109,7 +111,7 @@ const App: React.FC = () => {
      }
      
      const allClipsGenerated = clips.length > 0 && clips.every(c => c.generatedVideoUrl);
-     return <Storyboard clips={clips} setClips={setClips} onGenerate={handleGenerateAll} onMerge={handleMerge} canMerge={allClipsGenerated} engine={engine} setEngine={setEngine} />;
+     return <Storyboard clips={clips} setClips={setClips} onGenerate={handleGenerateAll} onMerge={handleMerge} canMerge={allClipsGenerated} engine={engine} setEngine={setEngine} voiceoverEngine={voiceoverEngine} setVoiceoverEngine={setVoiceoverEngine} />;
   }
 
   return (

@@ -1,4 +1,4 @@
-import type { Clip, Engine } from '../types';
+import type { Clip, Engine, VoiceoverEngine } from '../types';
 
 // This function converts a file to a base64 string for upload
 export const fileToBase64 = (file: File): Promise<{base64: string, mimeType: string}> => {
@@ -44,14 +44,14 @@ const b64toBlob = (b64Data: string, contentType = '', sliceSize = 512) => {
 };
 
 
-export const generateClip = async (clip: Clip, engine: Engine): Promise<{ generatedVideoUrl: string; generatedAudioData?: Uint8Array }> => {
+export const generateClip = async (clip: Clip, engine: Engine, voiceoverEngine: VoiceoverEngine): Promise<{ generatedVideoUrl: string; generatedAudioData?: Uint8Array }> => {
     // The backend is expected to be running on localhost:8080 during development
     const backendUrl = 'http://localhost:8080/api/generate-clip';
 
     const response = await fetch(backendUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...clip, engine })
+        body: JSON.stringify({ ...clip, engine, voiceoverEngine })
     });
 
     if (!response.ok) {

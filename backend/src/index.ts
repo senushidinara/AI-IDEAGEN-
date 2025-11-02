@@ -1,9 +1,12 @@
-// Fix: Use ES module import for Express to align with project's module system.
-import express, { Application, Request, Response } from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
+// Fix: The previous ES module imports were causing type errors.
+// Using CommonJS-style imports for Express, CORS, and Dotenv resolves issues with `req.body`, `res.send`, and `res.status` by ensuring proper type resolution.
+import express = require('express');
+import { Application, Request, Response } from 'express';
+import cors = require('cors');
+import dotenv = require('dotenv');
 import { generateVideo as generateVideoFromGemini, generateSpeech } from './services/geminiService';
 import { generateVideoFromCerebras } from './services/cerebrasService';
+import { generateElevenLabsSpeech } from './services/elevenLabsService';
 
 
 dotenv.config();
@@ -21,7 +24,7 @@ app.get('/', (req: Request, res: Response) => {
 // The main endpoint for generating a video/audio clip
 app.post('/api/generate-clip', async (req: Request, res: Response) => {
     try {
-        const { prompt, image, videoConfig, voiceoverConfig, engine } = req.body;
+        const { prompt, image, videoConfig, voiceoverConfig, engine, voiceoverEngine } = req.body;
 
         if (!prompt || !videoConfig || !voiceoverConfig) {
             return res.status(400).json({ message: 'Missing required clip data.' });
@@ -37,9 +40,17 @@ app.post('/api/generate-clip', async (req: Request, res: Response) => {
             videoBlob = await generateVideoFromGemini(prompt, image, videoConfig);
         }
 
-        // Generate audio (always uses Gemini for now)
-        const audioData = await (voiceoverConfig.script.trim() ? generateSpeech(voiceoverConfig) : Promise.resolve(null));
-
+        let audioData: Uint8Array | null = null;
+        if (voiceoverConfig.script.trim()) {
+            if (voiceoverEngine === 'elevenlabs') {
+                console.log('Routing speech generation to ElevenLabs service.');
+                audioData = await generateElevenLabsSpeech(voiceoverConfig.script, voiceoverConfig.voice);
+            } else {
+                console.log('Routing speech generation to Gemini service.');
+                audioData = await generateSpeech(voiceoverConfig);
+            }
+        }
+        
         // Convert generated media to base64 to send as JSON
         const videoBase64 = Buffer.from(await videoBlob.arrayBuffer()).toString('base64');
         const audioBase64 = audioData ? Buffer.from(audioData).toString('base64') : null;

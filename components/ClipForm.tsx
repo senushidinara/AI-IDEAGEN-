@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 
 import React, { useState } from 'react';
-import type { Clip, ImageFile, VideoConfig, VoiceoverConfig } from '../types';
+import type { Clip, ImageFile, VideoConfig, VoiceoverConfig, VoiceoverEngine } from '../types';
 import { fileToBase64 } from '../services/geminiService';
 
 interface ClipFormProps {
@@ -9,14 +9,24 @@ interface ClipFormProps {
     index: number;
     onUpdate: (updatedClip: Partial<Clip>) => void;
     onRemove: () => void;
+    voiceoverEngine: VoiceoverEngine;
 }
 
-const voices = [
+const geminiVoices = [
     { id: 'Kore', name: 'Kore (Female, Calm)' },
     { id: 'Puck', name: 'Puck (Male, Cheerful)' },
     { id: 'Charon', name: 'Charon (Male, Deep)' },
     { id: 'Fenrir', name: 'Fenrir (Female, Energetic)' },
     { id: 'Zephyr', name: 'Zephyr (Female, Warm)' },
+];
+
+const elevenLabsVoices = [
+    { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel (Calm)' },
+    { id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi (Narrative)' },
+    { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Bella (Warm)' },
+    { id: 'ErXwobaYiN019PkySvjV', name: 'Antoni (Well-Paced)' },
+    { id: 'MF3mGyEYCl7XYWbV9V6O', name: 'Elli (Expressive)' },
+    { id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh (Deep)' },
 ];
 
 const UploadIcon = () => (
@@ -27,9 +37,10 @@ const UploadIcon = () => (
 
 const inputBaseClasses = "w-full bg-gray-900/50 border border-gray-700 rounded-lg p-2.5 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors focus:outline-none";
 
-export const ClipForm: React.FC<ClipFormProps> = ({ clip, index, onUpdate, onRemove }) => {
+export const ClipForm: React.FC<ClipFormProps> = ({ clip, index, onUpdate, onRemove, voiceoverEngine }) => {
     const [imagePreview, setImagePreview] = useState<string | null>(clip.image ? `data:${clip.image.mimeType};base64,${clip.image.base64}` : null);
     const [isExpanded, setIsExpanded] = useState(index < 2); // Keep first two clips open by default
+    const voices = voiceoverEngine === 'elevenlabs' ? elevenLabsVoices : geminiVoices;
 
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         // Fix: Use `e.currentTarget` which is correctly typed as HTMLInputElement.

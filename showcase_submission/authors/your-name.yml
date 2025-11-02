@@ -1,0 +1,14 @@
+# Please rename this file to your-name.yml (e.g., 'john-doe.yml') and fill in your details.
+name: Your Full Name
+avatar: "https://github.com/yourusername.png" # or any avatar URL
+url: "https://yourwebsite.com" # Optional: your website
+bio: "A brief description about yourself."
+location: "City, Country"
+isElevenLabs: false # Set to true if you work at ElevenLabs
+socials:
+  - label: X
+    url: "https://x.com/yourusername"
+  - label: GitHub
+    url: "https://github.com/yourusername"
+  - label: LinkedIn
+    url: "https://linkedin.com/in/yourusername" # Optional
